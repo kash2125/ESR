@@ -506,3 +506,8 @@ def generate():
 if __name__ == "__main__":
     # For local dev only
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+@app.get("/health")
+def health():
+    return "ok", 200
+
