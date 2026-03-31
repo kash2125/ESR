@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Engineering Workload</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg1: #f5f7fb;
+        --bg2: #ffffff;
+        --text: #172033;
+        --muted: #5c6680;
+        --border: rgba(23, 32, 51, 0.08);
+        --shadow: 0 18px 50px rgba(27, 39, 94, 0.10);
+        --primary: #275efe;
+        --primary-dark: #133db8;
+        --accent: #12b886;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(39,94,254,0.12), transparent 28%),
+          radial-gradient(circle at top right, rgba(18,184,134,0.12), transparent 22%),
+          linear-gradient(180deg, #f7f9fd 0%, #eef3fb 100%);
+      }
+      .shell {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 28px 18px 42px;
+      }
+      .hero {
+        background: linear-gradient(135deg, rgba(39,94,254,0.98), rgba(99,102,241,0.92));
+        color: #fff;
+        border-radius: 26px;
+        padding: 28px;
+        box-shadow: var(--shadow);
+      }
+      .heroTop {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 34px;
+        line-height: 1.05;
+      }
+      .hero p {
+        margin: 0;
+        color: rgba(255,255,255,0.88);
+        max-width: 760px;
+      }
+      .heroActions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btnPrimary {
+        background: #fff;
+        color: var(--primary-dark);
+        box-shadow: 0 8px 22px rgba(255,255,255,0.22);
+      }
+      .btnSecondary {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.22);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.25fr 0.95fr;
+        gap: 18px;
+        margin-top: 20px;
+      }
+      .card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 22px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 18px;
+      }
+      .stat {
+        padding: 18px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(39,94,254,0.08), rgba(39,94,254,0.03));
+        border: 1px solid rgba(39,94,254,0.10);
+      }
+      .stat h2 {
+        margin: 0;
+        font-size: 28px;
+      }
+      .stat span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .sectionTitle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .sectionTitle h3 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .sectionTitle p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .chartWrap {
+        height: 360px;
+      }
+      .projectsList {
+        display: grid;
+        gap: 12px;
+      }
+      .projectItem {
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(23,32,51,0.08);
+        background: linear-gradient(180deg, #ffffff, #f8faff);
+      }
+      .projectTop {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .projectNumber {
+        display: inline-flex;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(39,94,254,0.09);
+        color: var(--primary-dark);
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+      }
+      .projectName {
+        margin: 10px 0 6px;
+        font-size: 18px;
+        font-weight: 750;
+      }
+      .projectMeta {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .flash {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: #ecfff7;
+        color: #0c6b4f;
+        border: 1px solid rgba(18,184,134,0.25);
+      }
+      .empty {
+        padding: 22px;
+        border-radius: 18px;
+        text-align: center;
+        color: var(--muted);
+        background: linear-gradient(180deg, #fbfcff, #f3f7ff);
+        border: 1px dashed rgba(39,94,254,0.18);
+      }
+      .topNote {
+        font-size: 13px;
+        color: rgba(255,255,255,0.86);
+      }
+      @media (max-width: 980px) {
+        .grid { grid-template-columns: 1fr; }
+        .stats { grid-template-columns: 1fr; }
+        .hero h1 { font-size: 28px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <div class="heroTop">
+          <div>
+            <div class="topNote">NS Engineering Dashboard</div>
+            <h1>Current Engineering Work Load</h1>
+            <p>
+              This homepage shows the active project load, how work is distributed across engineers,
+              and a direct path back to the ESR generator.
+            </p>
+          </div>
+          <div class="topNote">
+            {% if add_project_logged_in %}
+              Add Project access is active.
+            {% else %}
+              Add Project stays behind its own sign-in screen.
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="heroActions">
+          <a class="btn btnPrimary" href="{{ url_for('add_project') }}">Add Project</a>
+          <a class="btn btnSecondary" href="{{ esr_link }}">Generate ESR Form</a>
+          {% if add_project_logged_in %}
+            <a class="btn btnSecondary" href="{{ url_for('project_admin_logout') }}">Log out of Add Project</a>
+          {% endif %}
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <h2>{{ total_projects }}</h2>
+            <span>Active projects</span>
+          </div>
+          <div class="stat">
+            <h2>{{ total_engineers }}</h2>
+            <span>Engineers carrying active work</span>
+          </div>
+          <div class="stat">
+            <h2>{{ (total_projects / total_engineers)|round(1) if total_engineers else 0 }}</h2>
+            <span>Average projects per engineer</span>
+          </div>
+        </div>
+      </section>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash">
+            {% for msg in messages %}
+              <div>{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="grid">
+        <section class="card">
+          <div class="sectionTitle">
+            <div>
+              <h3>Projects by engineer</h3>
+              <p>Doughnut chart showing how many active projects each engineer currently has.</p>
+            </div>
+          </div>
+          <div class="chartWrap">
+            <canvas id="workloadChart"></canvas>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="sectionTitle">
+            <div>
+              <h3>Active project list</h3>
+              <p>Newest projects appear first.</p>
+            </div>
+          </div>
+
+          {% if projects %}
+            <div class="projectsList">
+              {% for project in projects %}
+                <article class="projectItem">
+                  <div class="projectTop">
+                    <span class="projectNumber">{{ project.project_number }}</span>
+                    <div class="projectMeta">Engineer: <strong>{{ project.engineer }}</strong></div>
+                  </div>
+                  <div class="projectName">{{ project.project_name }}</div>
+                  <div class="projectMeta">
+                    Added {{ project.created_at[:10] if project.created_at else 'recently' }}
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty">
+              No active projects yet. Click <strong>Add Project</strong> to start building the workload dashboard.
+            </div>
+          {% endif %}
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const labels = {{ chart_labels|tojson }};
+      const values = {{ chart_values|tojson }};
+      const ctx = document.getElementById('workloadChart');
+
+      if (labels.length === 0) {
+        const parent = ctx.parentElement;
+        parent.innerHTML = '<div class="empty">No data yet. Add a project and the chart will update automatically.</div>';
+      } else {
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              data: values,
+              backgroundColor: [
+                '#275EFE', '#12B886', '#F59F00', '#E64980', '#7048E8', '#1098AD', '#F76707', '#2B8A3E', '#C2255C', '#495057'
+              ],
+              borderWidth: 0,
+              hoverOffset: 10,
+            }]
+          },
+          options: {
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 18,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: { size: 13 }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label(context) {
+                    const value = context.raw || 0;
+                    return `${context.label}: ${value} project${value === 1 ? '' : 's'}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
