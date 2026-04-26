@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Engineering Workload</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg: #eef4fb;
+        --bg2: #f8fbff;
+        --panel: #ffffff;
+        --panel-soft: #f6f9ff;
+        --text: #142033;
+        --muted: #5c6982;
+        --line: rgba(20, 32, 51, 0.10);
+        --line-strong: rgba(20, 32, 51, 0.16);
+        --primary: #275efe;
+        --primary-2: #5d85ff;
+        --cyan: #3fb5e6;
+        --green: #12b886;
+        --gold: #cc8a00;
+        --gold-bg: #fff2cf;
+        --green-bg: #dff8ee;
+        --blue-bg: #e8efff;
+        --blue-text: #28448c;
+        --danger: #d92d20;
+        --shadow: 0 18px 54px rgba(27, 39, 94, 0.10);
+        --shadow-soft: 0 12px 28px rgba(27, 39, 94, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top center, rgba(39, 94, 254, 0.10), transparent 36%),
+          linear-gradient(180deg, #f8fbff 0%, #eef4fb 52%, #edf3fb 100%);
+      }
+
+      .shell {
+        width: min(1920px, calc(100vw - 28px));
+        max-width: none;
+        margin: 0 auto;
+        padding: 14px 0 42px;
+      }
+
+      .topNav {
+        position: sticky;
+        top: 10px;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+        padding: 12px 16px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(255,255,255,0.90);
+        backdrop-filter: blur(12px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .navLinks,
+      .navActions,
+      .listTools,
+      .sectionActions,
+      .heroActions,
+      .projectActions,
+      .presentationTopActions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .navLink,
+      .btn,
+      .iconBtn,
+      .presentationArrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        text-decoration: none;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 800;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+      }
+      .navLink:hover,
+      .btn:hover,
+      .iconBtn:hover,
+      .presentationArrow:hover { transform: translateY(-1px); }
+
+      .navLink,
+      .btnSecondary,
+      .iconBtn {
+        color: var(--text);
+        background: rgba(39,94,254,0.05);
+        border-color: rgba(39,94,254,0.12);
+      }
+      .navLink { font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+      .btnPrimary {
+        color: #fff;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        box-shadow: 0 14px 26px rgba(39, 94, 254, 0.24);
+      }
+      .btnNeutral {
+        color: var(--primary);
+        background: rgba(39,94,254,0.08);
+        border-color: rgba(39,94,254,0.16);
+        min-height: 40px;
+        font-size: 14px;
+      }
+      .btnDanger {
+        color: var(--danger);
+        background: rgba(217,45,32,0.06);
+        border-color: rgba(217,45,32,0.16);
+        min-height: 40px;
+        font-size: 14px;
+      }
+
+      .hero,
+      .card,
+      .presentationShell {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,251,255,0.98));
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        padding: 30px;
+        overflow: hidden;
+        position: relative;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -70px;
+        bottom: -70px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(39,94,254,0.14), transparent 65%);
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(40px, 4vw, 64px);
+        line-height: 1;
+        letter-spacing: -0.055em;
+        white-space: nowrap;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+      .stat {
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px solid rgba(39,94,254,0.08);
+        background: linear-gradient(180deg, #ffffff, #f7faff);
+      }
+      .stat h2 {
+        margin: 0;
+        font-size: clamp(32px, 4vw, 44px);
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+      .stat span {
+        display: block;
+        margin-top: 10px;
+        color: #33425d;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .flash {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: #ecfff7;
+        color: #0c6b4f;
+        border: 1px solid rgba(18,184,134,0.22);
+      }
+
+      .dashboardSections {
+        display: grid;
+        gap: 18px;
+        margin-top: 22px;
+      }
+      .card { padding: 24px; }
+
+      .sectionTitle {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+      }
+      .sectionTitle h3 {
+        margin: 0;
+        font-size: 30px;
+        letter-spacing: -0.04em;
+      }
+      .sectionTitle p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.6;
+      }
+
+      .chartRow {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .chartCard { min-height: 420px; }
+      .chartCard h4 {
+        margin: 0;
+        font-size: 24px;
+        letter-spacing: -0.03em;
+      }
+      .chartCard p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.55;
+      }
+      .chartWrap { height: 320px; margin-top: 18px; }
+
+      .filterLabel {
+        font-size: 13px;
+        font-weight: 800;
+        color: #42516b;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .filterSelect {
+        min-width: 220px;
+        min-height: 46px;
+        padding: 0 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(20,32,51,0.14);
+        background: #ffffff;
+        color: #142033;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 600;
+        outline: none;
+        box-shadow: 0 1px 0 rgba(20,32,51,0.04);
+      }
+      .filterSelect:focus {
+        border-color: rgba(39,94,254,0.55);
+        box-shadow: 0 0 0 4px rgba(39,94,254,0.10);
+      }
+      .filterSelect option { background: #ffffff; color: #142033; }
+
+      .projectsList {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .projectItem {
+        padding: 24px;
+        border-radius: 26px;
+        border: 1px solid rgba(39,94,254,0.10);
+        background:
+          radial-gradient(circle at top right, rgba(39,94,254,0.08), transparent 30%),
+          linear-gradient(180deg, #ffffff, #f7faff);
+      }
+      .projectTop {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .projectNumber,
+      .presentationProjectNumber {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #f0f4ff;
+        border: 1px solid rgba(39,94,254,0.12);
+        color: #28448c;
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.05em;
+      }
+      .projectName {
+        margin: 16px 0 10px;
+        font-size: clamp(28px, 3vw, 40px);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+        font-weight: 800;
+      }
+      .projectMeta,
+      .projectDescription,
+      .presentationProjectEngineer,
+      .presentationHint {
+        color: #4e5d77;
+        font-size: 16px;
+        line-height: 1.7;
+      }
+      .badgeRow,
+      .presentationBadgeRow,
+      .metaGrid,
+      .presentationMetaGrid {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .badgeRow,
+      .presentationBadgeRow { margin-top: 8px; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 800;
+        border: 1px solid transparent;
+      }
+      .badgeContract {
+        color: #0f6b4f;
+        background: var(--green-bg);
+        border-color: rgba(18,184,134,0.18);
+      }
+      .badgeNoContract {
+        color: #8a5a00;
+        background: var(--gold-bg);
+        border-color: rgba(204,138,0,0.18);
+      }
+      .badgeSales {
+        color: var(--blue-text);
+        background: var(--blue-bg);
+        border-color: rgba(39,94,254,0.14);
+      }
+      .metaGrid,
+      .presentationMetaGrid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+      }
+      .metaItem,
+      .presentationMetaItem {
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: var(--panel-soft);
+        border: 1px solid var(--line);
+      }
+      .metaLabel,
+      .presentationMetaLabel {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .metaValue,
+      .presentationMetaValue {
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .projectDescription,
+      .presentationDescription {
+        margin-top: 18px;
+        padding: 20px 22px;
+        border-radius: 20px;
+        background: var(--panel-soft);
+        border: 1px solid var(--line);
+        min-height: 90px;
+      }
+      .projectActions { margin-top: 16px; justify-content: flex-end; }
+      .inlineForm { margin: 0; }
+      .hiddenByFilter { display: none !important; }
+      #filteredEmptyState { margin-top: 14px; display: none; }
+
+      .empty {
+        padding: 26px;
+        border-radius: 22px;
+        text-align: center;
+        color: var(--muted);
+        background: var(--panel-soft);
+        border: 1px dashed rgba(39,94,254,0.18);
+        font-size: 16px;
+      }
+
+      .presentationOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(20,32,51,0.52);
+        backdrop-filter: blur(8px);
+        display: none;
+        z-index: 50;
+        padding: 18px;
+      }
+      .presentationOverlay.isOpen { display: block; }
+      .presentationShell {
+        width: min(1900px, calc(100vw - 36px));
+        height: calc(100vh - 36px);
+        margin: 0 auto;
+        padding: 22px;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      .presentationTopBar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .presentationTitleGroup h2 {
+        margin: 0;
+        font-size: 34px;
+        letter-spacing: -0.04em;
+      }
+      .presentationCounter {
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .presentationContent {
+        display: grid;
+        grid-template-columns: 86px minmax(0, 1fr) 86px;
+        gap: 16px;
+        align-items: stretch;
+        min-height: 0;
+      }
+      .presentationArrow {
+        padding: 0;
+        min-width: 86px;
+        border-radius: 24px;
+        color: var(--text);
+        font-size: 40px;
+        background: #fff;
+        border-color: var(--line);
+      }
+      .presentationArrow:disabled { opacity: 0.55; transform: none; cursor: not-allowed; }
+      .presentationViewport {
+        min-height: 0;
+        border-radius: 28px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #ffffff, #f7faff);
+        padding: 28px;
+        overflow: auto;
+      }
+      .presentationStage { will-change: transform, opacity; }
+      .presentationProjectHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .presentationProjectName {
+        margin: 16px 0 10px;
+        font-size: clamp(46px, 5vw, 76px);
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+        font-weight: 800;
+      }
+      .presentationDescription { font-size: 22px; min-height: 180px; }
+
+      @media (max-width: 1200px) {
+        .stats,
+        .metaGrid,
+        .presentationMetaGrid,
+        .chartRow { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 980px) {
+        .hero h1 { white-space: normal; }
+        .stats,
+        .chartRow,
+        .metaGrid,
+        .presentationMetaGrid,
+        .presentationContent { grid-template-columns: 1fr; }
+        .presentationArrow {
+          min-width: 0;
+          min-height: 56px;
+          font-size: 28px;
+        }
+        .presentationShell {
+          width: calc(100vw - 24px);
+          height: calc(100vh - 24px);
+        }
+      }
+      @media (max-width: 720px) {
+        .shell { width: calc(100vw - 16px); }
+        .hero,
+        .card,
+        .presentationShell { padding: 18px; }
+        .stats { grid-template-columns: 1fr; }
+        .projectName { font-size: 28px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="topNav">
+        <div class="navLinks">
+          <a class="navLink" href="#overview">Overview</a>
+          <a class="navLink" href="#active-projects">Active Projects</a>
+        </div>
+        <div class="navActions">
+          <button class="iconBtn" id="openPresentationMode" type="button">Presentation Mode</button>
+          <a class="btn btnSecondary" href="{{ url_for('add_project') }}">Add Project</a>
+          <a class="btn btnPrimary" href="{{ esr_link }}">Generate ESR Form</a>
+          {% if add_project_logged_in %}
+            <a class="btn btnSecondary" href="{{ url_for('project_admin_logout') }}">Log out</a>
+          {% endif %}
+        </div>
+      </nav>
+
+      <section class="hero" id="overview">
+        <h1>Current Engineering Work Load</h1>
+        <div class="heroActions">
+          <button class="btn btnSecondary" id="openPresentationModeHero" type="button">Open Presentation Mode</button>
+          <a class="btn btnSecondary" href="{{ url_for('add_project') }}">Add Project</a>
+          <a class="btn btnPrimary" href="{{ esr_link }}">Generate ESR Form</a>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <h2>{{ total_projects }}</h2>
+            <span>Active Projects</span>
+          </div>
+          <div class="stat">
+            <h2>{{ total_engineers }}</h2>
+            <span>Engineers Carrying Work</span>
+          </div>
+          <div class="stat">
+            <h2>{{ total_sales_people }}</h2>
+            <span>Sales People Represented</span>
+          </div>
+          <div class="stat">
+            <h2>{{ contract_count }}</h2>
+            <span>Projects with Contract</span>
+          </div>
+        </div>
+      </section>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash">
+            {% for msg in messages %}
+              <div>{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="dashboardSections">
+        <section class="chartRow">
+          <div class="card chartCard">
+            <h4>Projects by Sales Person</h4>
+            <p>Shows who is feeding the current engineering workload.</p>
+            <div class="chartWrap"><canvas id="salesChart"></canvas></div>
+          </div>
+          <div class="card chartCard">
+            <h4>Contract Mix</h4>
+            <p>Breakdown of projects under contract versus not under contract.</p>
+            <div class="chartWrap"><canvas id="statusChart"></canvas></div>
+          </div>
+          <div class="card chartCard">
+            <h4>Projects by Engineer</h4>
+            <p>Shows how active projects are distributed across project engineers.</p>
+            <div class="chartWrap"><canvas id="engineerChart"></canvas></div>
+          </div>
+        </section>
+
+        <section class="card" id="active-projects">
+          <div class="sectionTitle">
+            <div>
+              <h3>Active Project List</h3>
+              <p>One project per row for easier reading. Filter and sort stay in place until you clear them.</p>
+            </div>
+            {% if projects %}
+              <div class="sectionActions">
+                <div class="listTools">
+                  <label class="filterLabel" for="engineerFilter">Filter by Project Engineer</label>
+                  <select id="engineerFilter" class="filterSelect">
+                    <option value="__all__">All Project Engineers</option>
+                  </select>
+                </div>
+                <div class="listTools">
+                  <label class="filterLabel" for="projectSort">Sort</label>
+                  <select id="projectSort" class="filterSelect">
+                    <option value="default">Default order</option>
+                    <option value="project_number_asc">Project Number: A to Z / 0 to 9</option>
+                    <option value="project_number_desc">Project Number: Z to A / 9 to 0</option>
+                  </select>
+                </div>
+                <button class="iconBtn" id="openPresentationModeSection" type="button">Presentation Mode</button>
+              </div>
+            {% endif %}
+          </div>
+
+          {% if projects %}
+            <div class="projectsList" id="projectsList">
+              {% for project in projects %}
+                <article class="projectItem" data-engineer="{{ project.engineer }}" data-project-number="{{ project.project_number }}">
+                  <div class="projectTop">
+                    <div>
+                      <span class="projectNumber">{{ project.project_number }}</span>
+                      <div class="projectName">{{ project.project_name }}</div>
+                    </div>
+                    <div class="projectMeta">Project Engineer: <strong>{{ project.engineer }}</strong></div>
+                  </div>
+                  <div class="badgeRow">
+                    <span class="badge {{ 'badgeContract' if project.project_status == 'Contract' else 'badgeNoContract' }}">{{ project.project_status }}</span>
+                    <span class="badge badgeSales">Sales Person: {{ project.sales_person }}</span>
+                  </div>
+                  <div class="metaGrid">
+                    <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">{{ project.start_date or 'Not set' }}</div></div>
+                    <div class="metaItem"><span class="metaLabel">Projected End</span><div class="metaValue">{{ project.projected_end_date or 'Not set' }}</div></div>
+                    <div class="metaItem"><span class="metaLabel">Added</span><div class="metaValue">{{ project.created_at[:10] if project.created_at else 'recently' }}</div></div>
+                    <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">{{ project.project_status }}</div></div>
+                  </div>
+                  <div class="projectDescription" style="color: {{ project.description_color or '#24324b' }};">{{ project.description or 'No description added.' }}</div>
+
+                  {% if add_project_logged_in %}
+                    <div class="projectActions">
+                      <a class="btn btnNeutral" href="{{ url_for('edit_project', project_number=project.project_number) }}">Edit Project</a>
+                      <form class="inlineForm" method="post" action="{{ url_for('delete_project', project_number=project.project_number) }}" onsubmit="return confirm('Delete project {{ project.project_number }}?');">
+                        <button class="btn btnDanger" type="submit">Delete Project</button>
+                      </form>
+                    </div>
+                  {% endif %}
+                </article>
+              {% endfor %}
+            </div>
+            <div id="filteredEmptyState" class="empty">No projects match that Project Engineer filter.</div>
+          {% else %}
+            <div class="empty">No active projects yet. Click <strong>Add Project</strong> to start building the workload dashboard.</div>
+          {% endif %}
+        </section>
+      </div>
+    </div>
+
+    <div class="presentationOverlay" id="presentationOverlay" aria-hidden="true">
+      <div class="presentationShell">
+        <div class="presentationTopBar">
+          <div class="presentationTitleGroup">
+            <h2>Project Presentation Mode</h2>
+            <div class="presentationHint">Presentation follows the current filter and sort state from the active project list.</div>
+          </div>
+          <div class="presentationTopActions">
+            <div id="presentationCounter" class="presentationCounter"></div>
+            <button class="iconBtn" id="toggleBrowserFullscreen" type="button">Toggle Fullscreen</button>
+            <button class="iconBtn" id="closePresentationMode" type="button">Close</button>
+          </div>
+        </div>
+        <div class="presentationContent">
+          <button class="presentationArrow" id="presentationPrevBtn" type="button" aria-label="Previous project">&#8249;</button>
+          <div class="presentationViewport" id="presentationCarouselCard"></div>
+          <button class="presentationArrow" id="presentationNextBtn" type="button" aria-label="Next project">&#8250;</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const palette = ['#2F67FF', '#57BCEB', '#35C79A', '#F0B846', '#FF7A95', '#7D73FF', '#4AB8C7', '#FF9960', '#9ACB39', '#6B7A90'];
+      const projectsData = {{ projects|tojson }};
+      const STORAGE_KEYS = {
+        engineerFilter: 'engineeringDashboard.engineerFilter',
+        projectSort: 'engineeringDashboard.projectSort'
+      };
+      let presentationProjects = [...projectsData];
+      let presentationIndex = 0;
+
+      function makeDoughnut(canvasId, labels, values, emptyText) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        if (!labels.length || !values.some(v => Number(v) > 0)) {
+          ctx.parentElement.innerHTML = `<div class="empty">${emptyText}</div>`;
+          return;
+        }
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: { labels, datasets: [{ data: values, backgroundColor: palette, borderWidth: 0, hoverOffset: 10 }] },
+          options: {
+            maintainAspectRatio: false,
+            cutout: '66%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#24324b',
+                  padding: 18,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  font: { size: 14, weight: 700 }
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(255,255,255,0.98)',
+                titleColor: '#172033',
+                bodyColor: '#24324b',
+                borderColor: 'rgba(23,32,51,0.12)',
+                borderWidth: 1,
+                callbacks: {
+                  label(context) {
+                    const value = context.raw || 0;
+                    return `${context.label}: ${value} project${value === 1 ? '' : 's'}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function normalizeProjectNumber(value) {
+        return String(value || '').trim();
+      }
+      function compareProjectNumbers(a, b, direction = 'asc') {
+        const left = normalizeProjectNumber(a);
+        const right = normalizeProjectNumber(b);
+        const result = left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' });
+        return direction === 'desc' ? -result : result;
+      }
+      function sortProjectsArray(items, mode) {
+        const cloned = [...items];
+        if (mode === 'project_number_asc') {
+          cloned.sort((a, b) => compareProjectNumbers(a.project_number, b.project_number, 'asc'));
+        } else if (mode === 'project_number_desc') {
+          cloned.sort((a, b) => compareProjectNumbers(a.project_number, b.project_number, 'desc'));
+        }
+        return cloned;
+      }
+
+      function renderPresentationMarkup(project) {
+        if (!project) {
+          return `<div class="empty">No projects match the current filter.</div>`;
+        }
+        const statusClass = project.project_status === 'Contract' ? 'badgeContract' : 'badgeNoContract';
+        const addedText = project.created_at ? String(project.created_at).slice(0, 10) : 'recently';
+        return `
+          <div class="presentationStage">
+            <div class="presentationProjectHeader">
+              <div>
+                <span class="presentationProjectNumber">${escapeHtml(project.project_number)}</span>
+                <div class="presentationProjectName">${escapeHtml(project.project_name)}</div>
+              </div>
+              <div class="presentationProjectEngineer">Project Engineer: <strong>${escapeHtml(project.engineer || 'Not set')}</strong></div>
+            </div>
+            <div class="presentationBadgeRow">
+              <span class="badge ${statusClass}">${escapeHtml(project.project_status || 'No Contract')}</span>
+              <span class="badge badgeSales">Sales Person: ${escapeHtml(project.sales_person || 'Unassigned')}</span>
+            </div>
+            <div class="presentationMetaGrid">
+              <div class="presentationMetaItem"><span class="presentationMetaLabel">Start Date</span><div class="presentationMetaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
+              <div class="presentationMetaItem"><span class="presentationMetaLabel">Projected End</span><div class="presentationMetaValue">${escapeHtml(project.projected_end_date || 'Not set')}</div></div>
+              <div class="presentationMetaItem"><span class="presentationMetaLabel">Added</span><div class="presentationMetaValue">${escapeHtml(addedText)}</div></div>
+              <div class="presentationMetaItem"><span class="presentationMetaLabel">Status</span><div class="presentationMetaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
+            </div>
+            <div class="presentationDescription" style="color: ${escapeHtml(project.description_color || '#24324b')};">${escapeHtml(project.description || 'No description added.')}</div>
+          </div>`;
+      }
+
+      function animateSwap(containerId, project, direction = 'next') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const nextMarkup = renderPresentationMarkup(project);
+        if (!container.innerHTML.trim() || reduceMotion) {
+          container.innerHTML = nextMarkup;
+          return;
+        }
+        const exitFrames = direction === 'prev'
+          ? [{ opacity: 1, transform: 'translateX(0px)' }, { opacity: 0, transform: 'translateX(34px)' }]
+          : [{ opacity: 1, transform: 'translateX(0px)' }, { opacity: 0, transform: 'translateX(-34px)' }];
+        const enterFrames = direction === 'prev'
+          ? [{ opacity: 0, transform: 'translateX(-36px)' }, { opacity: 1, transform: 'translateX(0px)' }]
+          : [{ opacity: 0, transform: 'translateX(36px)' }, { opacity: 1, transform: 'translateX(0px)' }];
+        const outAnimation = container.animate(exitFrames, { duration: 160, easing: 'ease-in', fill: 'forwards' });
+        outAnimation.onfinish = () => {
+          container.innerHTML = nextMarkup;
+          container.animate(enterFrames, { duration: 260, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' });
+        };
+      }
+
+      function updatePresentationCounter() {
+        const counter = document.getElementById('presentationCounter');
+        if (!counter) return;
+        counter.textContent = presentationProjects.length
+          ? `Project ${presentationIndex + 1} of ${presentationProjects.length}`
+          : 'No matching projects';
+      }
+
+      function setPresentationProjects(projects, preserveCurrent = true) {
+        const currentNumber = preserveCurrent ? presentationProjects[presentationIndex]?.project_number : null;
+        presentationProjects = [...projects];
+        if (!presentationProjects.length) {
+          presentationIndex = 0;
+        } else if (currentNumber) {
+          const found = presentationProjects.findIndex(project => project.project_number === currentNumber);
+          presentationIndex = found >= 0 ? found : 0;
+        } else {
+          presentationIndex = 0;
+        }
+        animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], 'next');
+        updatePresentationCounter();
+      }
+
+      function restoreState(filterSelect, sortSelect) {
+        const savedFilter = localStorage.getItem(STORAGE_KEYS.engineerFilter);
+        const savedSort = localStorage.getItem(STORAGE_KEYS.projectSort);
+        if (savedFilter) filterSelect.value = savedFilter;
+        if (savedSort) sortSelect.value = savedSort;
+      }
+
+      function persistState(filterValue, sortValue) {
+        localStorage.setItem(STORAGE_KEYS.engineerFilter, filterValue);
+        localStorage.setItem(STORAGE_KEYS.projectSort, sortValue);
+      }
+
+      function initProjectList() {
+        const filterSelect = document.getElementById('engineerFilter');
+        const sortSelect = document.getElementById('projectSort');
+        const projectsList = document.getElementById('projectsList');
+        const projectCards = Array.from(document.querySelectorAll('.projectItem[data-engineer]'));
+        const emptyState = document.getElementById('filteredEmptyState');
+        if (!filterSelect || !sortSelect || !projectsList || !projectCards.length) {
+          setPresentationProjects(projectsData, false);
+          return;
+        }
+
+        const engineers = [...new Set(projectCards.map(card => (card.dataset.engineer || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        engineers.forEach(engineer => {
+          const option = document.createElement('option');
+          option.value = engineer;
+          option.textContent = engineer;
+          filterSelect.appendChild(option);
+        });
+
+        restoreState(filterSelect, sortSelect);
+        if (![...filterSelect.options].some(option => option.value === filterSelect.value)) {
+          filterSelect.value = '__all__';
+        }
+        if (!['default', 'project_number_asc', 'project_number_desc'].includes(sortSelect.value)) {
+          sortSelect.value = 'default';
+        }
+
+        function applyFilterAndSort() {
+          const selectedEngineer = filterSelect.value;
+          const sortMode = sortSelect.value;
+          persistState(selectedEngineer, sortMode);
+
+          const sortedData = sortProjectsArray(projectsData, sortMode).filter(project => {
+            return selectedEngineer === '__all__' || (project.engineer || '').trim() === selectedEngineer;
+          });
+          setPresentationProjects(sortedData);
+
+          const sortedCards = [...projectCards];
+          if (sortMode === 'project_number_asc') {
+            sortedCards.sort((a, b) => compareProjectNumbers(a.dataset.projectNumber, b.dataset.projectNumber, 'asc'));
+          } else if (sortMode === 'project_number_desc') {
+            sortedCards.sort((a, b) => compareProjectNumbers(a.dataset.projectNumber, b.dataset.projectNumber, 'desc'));
+          }
+          sortedCards.forEach(card => projectsList.appendChild(card));
+
+          let visibleCount = 0;
+          sortedCards.forEach(card => {
+            const matches = selectedEngineer === '__all__' || (card.dataset.engineer || '').trim() === selectedEngineer;
+            card.classList.toggle('hiddenByFilter', !matches);
+            if (matches) visibleCount += 1;
+          });
+          if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        filterSelect.addEventListener('change', applyFilterAndSort);
+        sortSelect.addEventListener('change', applyFilterAndSort);
+        applyFilterAndSort();
+      }
+
+      function initPresentationMode() {
+        const overlay = document.getElementById('presentationOverlay');
+        const openButtons = ['openPresentationMode', 'openPresentationModeHero', 'openPresentationModeSection']
+          .map(id => document.getElementById(id))
+          .filter(Boolean);
+        const closeBtn = document.getElementById('closePresentationMode');
+        const toggleFullscreenBtn = document.getElementById('toggleBrowserFullscreen');
+        const prevBtn = document.getElementById('presentationPrevBtn');
+        const nextBtn = document.getElementById('presentationNextBtn');
+        if (!overlay || !openButtons.length) return;
+
+        function move(direction) {
+          if (!presentationProjects.length) return;
+          presentationIndex = direction === 'prev'
+            ? (presentationIndex - 1 + presentationProjects.length) % presentationProjects.length
+            : (presentationIndex + 1) % presentationProjects.length;
+          animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], direction);
+          updatePresentationCounter();
+        }
+
+        async function openPresentation() {
+          overlay.classList.add('isOpen');
+          overlay.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+          animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], 'next');
+          updatePresentationCounter();
+        }
+
+        async function closePresentation() {
+          overlay.classList.remove('isOpen');
+          overlay.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+          try {
+            if (document.fullscreenElement) await document.exitFullscreen();
+          } catch (error) {}
+        }
+
+        openButtons.forEach(button => button.addEventListener('click', openPresentation));
+        if (closeBtn) closeBtn.addEventListener('click', closePresentation);
+        if (prevBtn) prevBtn.addEventListener('click', () => move('prev'));
+        if (nextBtn) nextBtn.addEventListener('click', () => move('next'));
+
+        if (toggleFullscreenBtn) {
+          toggleFullscreenBtn.addEventListener('click', async () => {
+            try {
+              if (document.fullscreenElement) {
+                await document.exitFullscreen();
+              } else if (overlay.requestFullscreen) {
+                await overlay.requestFullscreen();
+              }
+            } catch (error) {}
+          });
+        }
+
+        overlay.addEventListener('click', event => {
+          if (event.target === overlay) closePresentation();
+        });
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape' && overlay.classList.contains('isOpen')) closePresentation();
+          if (overlay.classList.contains('isOpen') && event.key === 'ArrowLeft') move('prev');
+          if (overlay.classList.contains('isOpen') && event.key === 'ArrowRight') move('next');
+        });
+      }
+
+      makeDoughnut('engineerChart', {{ engineer_chart_labels|tojson }}, {{ engineer_chart_values|tojson }}, 'No engineer data yet.');
+      makeDoughnut('salesChart', {{ sales_chart_labels|tojson }}, {{ sales_chart_values|tojson }}, 'No sales-person data yet.');
+      makeDoughnut('statusChart', {{ status_chart_labels|tojson }}, {{ status_chart_values|tojson }}, 'No contract-status data yet.');
+      initProjectList();
+      initPresentationMode();
+    </script>
+  </body>
+</html>
