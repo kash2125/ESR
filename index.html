@@ -522,11 +522,8 @@
       <nav class="topNav">
         <div class="navActions">
           <button class="iconBtn" id="openPresentationMode" type="button">Presentation Mode</button>
-          {% if add_project_logged_in %}<a class="btn btnSecondary" href="{{ url_for('add_project') }}">Add Project</a>{% else %}<a class="btn btnSecondary" href="{{ url_for('project_admin_login', next=url_for('add_project')) }}">Log In</a>{% endif %}
-          <a class="btn btnPrimary" href="{{ esr_link }}">Generate ESR Form</a>
-          {% if add_project_logged_in %}
-            <a class="btn btnSecondary" href="{{ url_for('project_admin_logout') }}">Log out</a>
-          {% endif %}
+          <a class="btn btnSecondary" href="add_project.html">Add Project</a>
+          <a class="btn btnPrimary" href="esr.html">Generate ESR Form</a>
         </div>
       </nav>
 
@@ -535,33 +532,23 @@
 
         <div class="stats">
           <div class="stat">
-            <h2>{{ total_projects }}</h2>
+            <h2 id="totalProjects">0</h2>
             <span>Active Projects</span>
           </div>
           <div class="stat">
-            <h2>{{ total_engineers }}</h2>
+            <h2 id="totalEngineers">0</h2>
             <span>Engineers Carrying Work</span>
           </div>
           <div class="stat">
-            <h2>{{ total_sales_people }}</h2>
+            <h2 id="totalSalesPeople">0</h2>
             <span>Sales People Represented</span>
           </div>
           <div class="stat">
-            <h2>{{ contract_count }}</h2>
+            <h2 id="contractCount">0</h2>
             <span>Projects with Contract</span>
           </div>
         </div>
       </section>
-
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="flash">
-            {% for msg in messages %}
-              <div>{{ msg }}</div>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
 
       <div class="dashboardSections">
         <section class="chartRow">
@@ -584,68 +571,30 @@
             <div>
               <h3>Active Project List</h3>
                           </div>
-            {% if projects %}
-              <div class="sectionActions">
-                <div class="listTools">
-                  <label class="filterLabel" for="engineerFilter">Filter by Project Engineer</label>
-                  <select id="engineerFilter" class="filterSelect">
-                    <option value="__all__">All Project Engineers</option>
-                  </select>
-                </div>
-                <div class="listTools">
-                  <label class="filterLabel" for="projectSort">Sort</label>
-                  <select id="projectSort" class="filterSelect">
-                    <option value="default">Default order</option>
-                    <option value="project_number_asc">Project Number: A to Z / 0 to 9</option>
-                    <option value="project_number_desc">Project Number: Z to A / 9 to 0</option>
-                  </select>
-                </div>
-                <button class="iconBtn" id="openPresentationModeSection" type="button">Presentation Mode</button>
+            <div class="sectionActions">
+              <div class="listTools">
+                <label class="filterLabel" for="engineerFilter">Filter by Project Engineer</label>
+                <select id="engineerFilter" class="filterSelect">
+                  <option value="__all__">All Project Engineers</option>
+                </select>
               </div>
-            {% endif %}
+
+              <div class="listTools">
+                <label class="filterLabel" for="projectSort">Sort</label>
+                <select id="projectSort" class="filterSelect">
+                  <option value="default">Default order</option>
+                  <option value="project_number_asc">Project Number: A to Z / 0 to 9</option>
+                  <option value="project_number_desc">Project Number: Z to A / 9 to 0</option>
+                </select>
+              </div>
+
+            <button class="iconBtn" id="openPresentationModeSection" type="button">Presentation Mode</button>
+          </div>
           </div>
 
-          {% if projects %}
-            <div class="projectsList" id="projectsList">
-              {% for project in projects %}
-                <article class="projectItem" data-engineer="{{ project.engineer }}" data-project-number="{{ project.project_number }}">
-                  <div class="projectTop">
-                    <div>
-                      <span class="projectNumber">{{ project.project_number }}</span>
-                      <div class="projectName">{{ project.project_name }}</div>
-                    </div>
-                    <div class="projectMeta">Project Engineer: <strong>{{ project.engineer }}</strong></div>
-                  </div>
-                  <div class="badgeRow">
-                    <span class="badge {{ 'badgeContract' if project.project_status == 'Contract' else 'badgeNoContract' }}">{{ project.project_status }}</span>
-                    <span class="badge badgeSales">Sales Person: {{ project.sales_person }}</span>
-                  </div>
-                  <div class="metaGrid">
-                    <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">{{ project.start_date or 'Not set' }}</div></div>
-                    <div class="metaItem"><span class="metaLabel">Projected End</span><div class="metaValue">{{ project.projected_end_date or 'Not set' }}</div></div>
-                    <div class="metaItem"><span class="metaLabel">Added</span><div class="metaValue">{{ project.created_at[:10] if project.created_at else 'recently' }}</div></div>
-                    <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">{{ project.project_status }}</div></div>
-                  </div>
-                  <div class="projectDescription">{{ project.description_html|safe }}</div>
-
-                  {% if add_project_logged_in %}
-                    <div class="projectActions">
-                      <a class="btn btnNeutral editProjectLink" href="{{ url_for('edit_project', project_number=project.project_number) }}">Edit Project</a>
-                      <form class="inlineForm deleteProjectForm" method="post" action="{{ url_for('delete_project', project_number=project.project_number) }}" onsubmit="return confirm('Delete project {{ project.project_number }}?');">
-                        <input type="hidden" name="return_engineer" value="" />
-                        <input type="hidden" name="return_sort" value="" />
-                        <button class="btn btnDanger" type="submit">Delete Project</button>
-                      </form>
-                    </div>
-                  {% endif %}
-                </article>
-              {% endfor %}
-            </div>
-            <div id="filteredEmptyState" class="empty">No projects match that Project Engineer filter.</div>
-          {% else %}
-            <div class="empty">No active projects yet. Click <strong>Add Project</strong> to start building the workload dashboard.</div>
-          {% endif %}
-        </section>
+          <div class="projectsList" id="projectsList"></div>
+          <div id="filteredEmptyState" class="empty">No projects match that Project Engineer filter.</div>
+          </section>
       </div>
     </div>
 
@@ -669,10 +618,13 @@
         </div>
       </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="projects.js"></script>
+    <script src="esrGenerator.js"></script>
+    <script src="supabaseClient.js"></script>
     <script>
       const palette = ['#2F67FF', '#57BCEB', '#35C79A', '#F0B846', '#FF7A95', '#7D73FF', '#4AB8C7', '#FF9960', '#9ACB39', '#6B7A90'];
-      const projectsData = {{ projects|tojson }};
+      let projectsData = [];
       const STORAGE_KEYS = {
         engineerFilter: 'engineeringDashboard.engineerFilter',
         projectSort: 'engineeringDashboard.projectSort'
@@ -1007,12 +959,93 @@
           if (overlay.classList.contains('isOpen') && event.key === 'ArrowRight') move('next');
         });
       }
+      async function loadProjects() {
+  try {
+    const response = await fetch('projects.json');
+    projectsData = await response.json();
 
-      makeDoughnut('engineerChart', {{ engineer_chart_labels|tojson }}, {{ engineer_chart_values|tojson }}, 'No engineer data yet.');
-      makeDoughnut('salesChart', {{ sales_chart_labels|tojson }}, {{ sales_chart_values|tojson }}, 'No sales-person data yet.');
-      makeDoughnut('statusChart', {{ status_chart_labels|tojson }}, {{ status_chart_values|tojson }}, 'No contract-status data yet.');
-      initProjectList();
-      initPresentationMode();
+    renderStats();
+    renderProjects();
+    renderCharts();
+
+    initProjectList();
+    initPresentationMode();
+  } catch (error) {
+    document.getElementById('projectsList').innerHTML =
+      `<div class="empty">Could not load projects.json.</div>`;
+  }
+}
+
+function renderStats() {
+  const engineers = new Set(projectsData.map(p => p.engineer).filter(Boolean));
+  const salesPeople = new Set(projectsData.map(p => p.sales_person).filter(Boolean));
+  const contracts = projectsData.filter(p => p.project_status === 'Contract');
+
+  document.getElementById('totalProjects').textContent = projectsData.length;
+  document.getElementById('totalEngineers').textContent = engineers.size;
+  document.getElementById('totalSalesPeople').textContent = salesPeople.size;
+  document.getElementById('contractCount').textContent = contracts.length;
+}
+
+function countBy(field) {
+  const counts = {};
+  projectsData.forEach(project => {
+    const key = project[field] || 'Not set';
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderCharts() {
+  const engineers = countBy('engineer');
+  const sales = countBy('sales_person');
+  const status = countBy('project_status');
+
+  makeDoughnut('engineerChart', Object.keys(engineers), Object.values(engineers), 'No engineer data yet.');
+  makeDoughnut('salesChart', Object.keys(sales), Object.values(sales), 'No sales-person data yet.');
+  makeDoughnut('statusChart', Object.keys(status), Object.values(status), 'No contract-status data yet.');
+}
+
+function renderProjects() {
+  const list = document.getElementById('projectsList');
+
+  if (!projectsData.length) {
+    list.innerHTML = `<div class="empty">No active projects yet. Add projects in projects.json.</div>`;
+    return;
+  }
+
+  list.innerHTML = projectsData.map(project => {
+    const statusClass = project.project_status === 'Contract' ? 'badgeContract' : 'badgeNoContract';
+    const addedText = project.created_at ? String(project.created_at).slice(0, 10) : 'recently';
+
+    return `
+      <article class="projectItem" data-engineer="${escapeHtml(project.engineer || '')}" data-project-number="${escapeHtml(project.project_number || '')}">
+        <div class="projectTop">
+          <div>
+            <span class="projectNumber">${escapeHtml(project.project_number || '')}</span>
+            <div class="projectName">${escapeHtml(project.project_name || '')}</div>
+          </div>
+          <div class="projectMeta">Project Engineer: <strong>${escapeHtml(project.engineer || 'Not set')}</strong></div>
+        </div>
+
+        <div class="badgeRow">
+          <span class="badge ${statusClass}">${escapeHtml(project.project_status || 'No Contract')}</span>
+          <span class="badge badgeSales">Sales Person: ${escapeHtml(project.sales_person || 'Unassigned')}</span>
+        </div>
+
+        <div class="metaGrid">
+          <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
+          <div class="metaItem"><span class="metaLabel">Projected End</span><div class="metaValue">${escapeHtml(project.projected_end_date || 'Not set')}</div></div>
+          <div class="metaItem"><span class="metaLabel">Added</span><div class="metaValue">${escapeHtml(addedText)}</div></div>
+          <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
+        </div>
+
+        <div class="projectDescription">${project.description_html || 'No description added.'}</div>
+      </article>
+    `;
+  }).join('');
+}
+      loadProjects();
     </script>
   </body>
 </html>
