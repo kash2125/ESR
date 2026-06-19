@@ -38,8 +38,8 @@
   <body>
     <div class="shell">
       <div class="card">
-        <h1>Add Project</h1>
-        <p>Fill in the project details below. Once submitted, the dashboard updates automatically.</p>
+        <h1>Edit Project</h1>
+        <p>Update the project details below. Saving will refresh the dashboard.</p>
 
         <div id="pageMessage" class="flash" style="display:none;"></div>
 
@@ -115,7 +115,7 @@
           </div>
 
           <div class="actions">
-            <button id="saveProjectBtn" type="submit">Save Project</button>
+            <button id="saveProjectBtn" type="submit">Update Project</button>
             <a href="index.html">Back to dashboard</a>
           </div>
         </form>
@@ -128,18 +128,17 @@
     
 
     <script>
-      async function requireLogin() {
-        const { data, error } = await supabaseClient.auth.getSession();
+       async function requireLogin() {
+          const { data, error } = await supabaseClient.auth.getSession();
 
-        if (error || !data.session) {
-          window.location.href = "login.html";
-          return;
+          if (error || !data.session) {
+            window.location.href = "login.html";
+            return false;
+          }
+
+          console.log("Logged in as:", data.session.user.email);
+          return true;
         }
-
-        console.log("Logged in as:", data.session.user.email);
-      }
-
-      requireLogin();
     </script>
 
     <script>
@@ -151,6 +150,8 @@
       const form = document.getElementById("projectForm");
       const saveProjectBtn = document.getElementById("saveProjectBtn");
       const pageMessage = document.getElementById("pageMessage");
+      const params = new URLSearchParams(window.location.search);
+      const originalProjectNumber = params.get("project");
 
       let savedRange = null;
 
@@ -319,6 +320,31 @@
           rememberSelection();
         }
       });
+      
+      async function loadProjectForEdit() {
+        if (!originalProjectNumber) {
+          showMessage("Missing project number.", "error");
+          return;
+        }
+
+        const project = await getProjectByNumber(originalProjectNumber);
+
+        if (!project) {
+          showMessage("Project not found.", "error");
+          return;
+        }
+
+        document.getElementById("project_number").value = project.project_number || "";
+        document.getElementById("project_name").value = project.project_name || "";
+        document.getElementById("engineer").value = project.engineer || "";
+        document.getElementById("project_status").value = project.project_status || "No Contract";
+        document.getElementById("sales_person").value = project.sales_person || "";
+        document.getElementById("start_date").value = project.start_date || "";
+        document.getElementById("projected_end_date").value = project.projected_end_date || "";
+
+        editor.innerHTML = project.description || project.description_html || "";
+        hiddenDescription.value = editor.innerHTML.trim();
+      }
 
       form.addEventListener("submit", async event => {
         event.preventDefault();
@@ -359,9 +385,8 @@
 
           console.log("Saving as:", sessionData.session.user.email);
 
-          await insertProject(result.project);
-
-          showMessage("Project saved successfully.", "success");
+          await updateProject(originalProjectNumber, result.project);
+          showMessage("Project updated successfully.", "success");
 
           setTimeout(() => {
             window.location.href = "index.html";
@@ -373,6 +398,9 @@
           saveProjectBtn.disabled = false;
           saveProjectBtn.textContent = "Save Project";
         }
+      });
+      requireLogin().then(isLoggedIn => {
+        if (isLoggedIn) loadProjectForEdit();
       });
     </script>
   </body>

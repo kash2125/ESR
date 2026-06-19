@@ -1,11 +1,17 @@
 const SUPABASE_URL = "https://mckmcozsmbmbrybxydfq.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_lpV4Epc2dYVmsKd5s6QDKQ_hnnnxYKe";
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
 
 const PROJECTS_TABLE = "projects";
 
-async function loadProjects() {
+async function loadSupabaseProjects() {
   const { data, error } = await supabaseClient
     .from(PROJECTS_TABLE)
     .select("*")

@@ -1,90 +1,71 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sign in — ESR Generator</title>
-    <style>
-      :root {
-        --border: #e7e7e7;
-        --muted: #666;
-        --bg: #fafafa;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Add Project Sign In</title>
+  <style>
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:18px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%); color:#172033; }
+    .card { width:100%; max-width:430px; background:#fff; border-radius:22px; padding:24px; box-shadow:0 18px 50px rgba(27,39,94,.10); border:1px solid rgba(23,32,51,.08); }
+    h1 { margin:0 0 6px; font-size:28px; }
+    p { margin:0 0 16px; color:#5c6680; }
+    label { display:block; margin:12px 0 6px; font-weight:650; }
+    input { width:100%; box-sizing:border-box; padding:12px 14px; border-radius:14px; border:1px solid rgba(23,32,51,.14); font-size:15px; }
+    button, .back { display:inline-flex; align-items:center; justify-content:center; width:100%; min-height:48px; border-radius:14px; border:0; text-decoration:none; font-weight:700; }
+    button { margin-top:16px; background:#275efe; color:#fff; cursor:pointer; }
+    .back { margin-top:10px; background:#eef3ff; color:#1e3a8a; }
+    .flash { display:none; margin:12px 0 0; padding:12px 14px; border-radius:12px; background:#fff4e5; color:#9a4d00; border:1px solid rgba(245,159,0,.25); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Add Project</h1>
+    <p>Sign in to add or edit projects.</p>
+
+    <div id="pageMessage" class="flash"></div>
+
+    <form id="loginForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required autofocus />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required />
+
+      <button type="submit">Sign in</button>
+    </form>
+
+    <a class="back" href="index.html">Back to dashboard</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const form = document.getElementById("loginForm");
+    const message = document.getElementById("pageMessage");
+
+    function showMessage(text) {
+      message.textContent = text;
+      message.style.display = "block";
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        showMessage(error.message);
+        return;
       }
-      body { font-family: Arial, sans-serif; margin: 28px; background: var(--bg); }
-      .card {
-        max-width: 420px;
-        margin: 10vh auto 0;
-        background: #fff;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 18px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-      }
-      h1 { margin: 0 0 6px; font-size: 22px; }
-      .muted { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
-      label { display:block; font-size: 14px; margin: 10px 0 6px; }
-      input[type="text"], input[type="password"] {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 10px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        font-size: 14px;
-      }
-      button {
-        margin-top: 14px;
-        width: 100%;
-        padding: 10px;
-        border: 0;
-        border-radius: 8px;
-        background: #111;
-        color: #fff;
-        font-size: 14px;
-        cursor: pointer;
-      }
-      button:hover { opacity: 0.92; }
-      .flash {
-        margin: 10px 0 0;
-        padding: 10px;
-        border: 1px solid #f1c40f;
-        background: #fff7d6;
-        border-radius: 8px;
-        font-size: 14px;
-      }
-      .footer { margin-top: 12px; font-size: 12px; color: var(--muted); }
-      code { background: #f3f3f3; padding: 1px 4px; border-radius: 4px; }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>Sign in</h1>
-      <p class="muted">This tool is protected. Enter your credentials to continue.</p>
 
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="flash">
-            {% for msg in messages %}
-              <div>{{ msg }}</div>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-
-      <form action="/login" method="post" autocomplete="off">
-        <input type="hidden" name="next" value="{{ next }}" />
-
-        <label for="username">Username</label>
-        <input id="username" name="username" type="text" required autofocus />
-
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" required />
-
-        <button type="submit">Sign in</button>
-      </form>
-
-      <div class="footer">
-        Admin note: set <code>FLASK_SECRET_KEY</code> in production and serve over HTTPS.
-      </div>
-    </div>
-  </body>
+      window.location.href = "add_project.html";
+    });
+  </script>
+</body>
 </html>

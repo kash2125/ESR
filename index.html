@@ -522,7 +522,17 @@
       <nav class="topNav">
         <div class="navActions">
           <button class="iconBtn" id="openPresentationMode" type="button">Presentation Mode</button>
-          <a class="btn btnSecondary" href="add_project.html">Add Project</a>
+
+          <a class="btn btnSecondary" id="loginBtn" href="login.html">Log In</a>
+
+          <a class="btn btnSecondary" id="addProjectBtn" href="add_project.html" style="display:none;">
+            Add Project
+          </a>
+
+          <button class="btn btnSecondary" id="logoutBtn" type="button" style="display:none;">
+            Log Out
+          </button>
+
           <a class="btn btnPrimary" href="esr.html">Generate ESR Form</a>
         </div>
       </nav>
@@ -620,8 +630,37 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="projects.js"></script>
-    <script src="esrGenerator.js"></script>
     <script src="supabaseClient.js"></script>
+
+    <script>
+      async function updateAuthButtons() {
+        const loginBtn = document.getElementById("loginBtn");
+        const addProjectBtn = document.getElementById("addProjectBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        const { data } = await supabaseClient.auth.getSession();
+        const isLoggedIn = !!data.session;
+
+        if (loginBtn) loginBtn.style.display = isLoggedIn ? "none" : "inline-flex";
+        if (addProjectBtn) addProjectBtn.style.display = isLoggedIn ? "inline-flex" : "none";
+        if (logoutBtn) logoutBtn.style.display = isLoggedIn ? "inline-flex" : "none";
+      }
+
+      async function logoutUser() {
+        await supabaseClient.auth.signOut();
+        window.location.href = "index.html";
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        updateAuthButtons();
+
+        const logoutBtn = document.getElementById("logoutBtn");
+        if (logoutBtn) {
+          logoutBtn.addEventListener("click", logoutUser);
+        }
+      });
+    </script>
+
     <script>
       const palette = ['#2F67FF', '#57BCEB', '#35C79A', '#F0B846', '#FF7A95', '#7D73FF', '#4AB8C7', '#FF9960', '#9ACB39', '#6B7A90'];
       let projectsData = [];
@@ -959,22 +998,25 @@
           if (overlay.classList.contains('isOpen') && event.key === 'ArrowRight') move('next');
         });
       }
-      async function loadProjects() {
-  try {
-    const response = await fetch('projects.json');
-    projectsData = await response.json();
+      async function loadDashboardProjects() {
+        try {
+          projectsData = await loadSupabaseProjects();
 
-    renderStats();
-    renderProjects();
-    renderCharts();
+          renderStats();
+          renderProjects();
+          await updateDashboardAuthState();
+          renderCharts();
 
-    initProjectList();
-    initPresentationMode();
-  } catch (error) {
-    document.getElementById('projectsList').innerHTML =
-      `<div class="empty">Could not load projects.json.</div>`;
-  }
-}
+          initProjectList();
+          initPresentationMode();
+        } catch (error) {
+          console.error(error);
+          projectsData = [];
+
+          document.getElementById("projectsList").innerHTML =
+            `<div class="empty">Could not load projects from Supabase.</div>`;
+        }
+      }
 
 function renderStats() {
   const engineers = new Set(projectsData.map(p => p.engineer).filter(Boolean));
@@ -1040,12 +1082,50 @@ function renderProjects() {
           <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
         </div>
 
-        <div class="projectDescription">${project.description_html || 'No description added.'}</div>
+       <div class="projectDescription">${project.description_html || 'No description added.'}</div>
+
+        <div class="projectActions authOnlyActions" style="display:none;">
+          <a class="btn btnNeutral" href="edit_project.html?project=${encodeURIComponent(project.project_number)}">
+            Edit
+          </a>
+
+          <button class="btn btnDanger" type="button" onclick="deleteProjectFromDashboard('${escapeHtml(project.project_number)}')">
+            Delete
+          </button>
+        </div>
       </article>
     `;
   }).join('');
 }
-      loadProjects();
+      let dashboardIsLoggedIn = false;
+
+      async function updateDashboardAuthState() {
+        const { data } = await supabaseClient.auth.getSession();
+        dashboardIsLoggedIn = !!data.session;
+
+        document.querySelectorAll(".authOnlyActions").forEach(el => {
+          el.style.display = dashboardIsLoggedIn ? "flex" : "none";
+        });
+      }
+
+      async function deleteProjectFromDashboard(projectNumber) {
+        if (!dashboardIsLoggedIn) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const confirmed = confirm(`Delete project ${projectNumber}?`);
+        if (!confirmed) return;
+
+        try {
+          await deleteProjectByNumber(projectNumber);
+          await loadDashboardProjects();
+        } catch (error) {
+          console.error(error);
+          alert(error.message || "Could not delete project.");
+        }
+      }
+      loadDashboardProjects();
     </script>
   </body>
 </html>
