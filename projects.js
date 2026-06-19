@@ -9,7 +9,7 @@ const SALES_PERSON_OPTIONS = [
   "Francis Tenggardjaja"
 ];
 
-const PROJECT_STATUS_OPTIONS = ["Contract", "No Contract"];
+const PROJECT_STATUS_OPTIONS = ["Contract", "No Contract", "Completed"];
 
 const DEFAULT_DESCRIPTION_COLOR = "#000000";
 const ALLOWED_DESCRIPTION_COLORS = ["#000000", "#c62828"];
@@ -18,6 +18,7 @@ function normalizeProjectStatus(value) {
   const raw = String(value || "").trim().toLowerCase();
   if (raw === "contract") return "Contract";
   if (raw === "no contract") return "No Contract";
+  if (raw === "completed") return "Completed";
   return "No Contract";
 }
 
@@ -81,9 +82,11 @@ function sanitizeDescriptionHtml(value) {
       if (node.tagName === "SPAN" && attr.name === "style") {
         const style = attr.value.toLowerCase();
         if (style.includes("#c62828") || style.includes("red") || style.includes("rgb(198, 40, 40)")) {
-          node.setAttribute("style", "color: #c62828;");
+          const strong = document.createElement("strong");
+          strong.innerHTML = node.innerHTML;
+          node.replaceWith(strong);
         } else if (style.includes("#000000") || style.includes("black") || style.includes("rgb(0, 0, 0)")) {
-          node.setAttribute("style", "color: #000000;");
+          node.removeAttribute("style");
         } else {
           node.removeAttribute("style");
         }
@@ -107,7 +110,7 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
   const description = sanitizeDescriptionHtml(formValues.description || "");
   const descriptionColor = normalizeDescriptionColor(formValues.description_color || DEFAULT_DESCRIPTION_COLOR);
 
-  if (!projectNumber || !projectName || !engineer || !projectStatus || !salesPerson || !startDate || !projectedEndDate) {
+  if (!projectNumber || !projectName || !engineer || !projectStatus || !salesPerson || !startDate) {
     return { project: null, error: "Please fill in all project fields before saving." };
   }
 
@@ -127,8 +130,8 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
     return { project: null, error: "Please select a valid Sales Person from the dropdown." };
   }
 
-  if (new Date(projectedEndDate) < new Date(startDate)) {
-    return { project: null, error: "Projected End Date cannot be earlier than Start Date." };
+  if (projectedEndDate && new Date(projectedEndDate) < new Date(startDate)) {
+    return { project: null, error: "Completed Date cannot be earlier than Start Date." };
   }
 
   return {
@@ -139,7 +142,7 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
       project_status: normalizeProjectStatus(projectStatus),
       sales_person: normalizeSalesPerson(salesPerson),
       start_date: startDate,
-      projected_end_date: projectedEndDate,
+      projected_end_date: projectedEndDate || null,
       description,
       description_color: descriptionColor,
       description_html: description || "No description added.",

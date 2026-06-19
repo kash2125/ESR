@@ -19,6 +19,7 @@
       .toolLabel { font-size:13px; font-weight:700; color:#4d5d79; }
       .toolButton { min-height:40px; padding:0 16px; border-radius:12px; border:1px solid rgba(23,32,51,.12); background:#fff; color:#172033; cursor:pointer; font-weight:700; }
       .toolButtonHighlight { background:#fff2a8; border-color:#e6c84f; color:#172033; }
+      .toolButtonActive { box-shadow:0 0 0 4px rgba(39,94,254,.10); border-color:rgba(39,94,254,.45); }
       .editorNote { margin:0 0 10px; color:#5c6680; font-size:13px; }
       .richEditor { width:100%; min-height:180px; padding:12px 14px; border-radius:14px; border:1px solid rgba(23,32,51,.14); font-size:15px; font-family:inherit; background:#fff; color:#172033; line-height:1.6; outline:none; box-sizing:border-box; }
       .richEditor:focus { border-color:rgba(39,94,254,.45); box-shadow:0 0 0 4px rgba(39,94,254,.08); }
@@ -123,11 +124,6 @@
               <input id="start_date" name="start_date" type="date" required />
             </div>
 
-            <div>
-              <label for="projected_end_date">Projected End Date</label>
-              <input id="projected_end_date" name="projected_end_date" type="date" required />
-            </div>
-
             <div class="fieldFull">
               <label for="descriptionEditor">Description</label>
 
@@ -137,7 +133,7 @@
                 <button class="toolButton toolButtonHighlight" id="applyHighlightText" type="button">Highlight</button>
               </div>
 
-              <div class="editorNote">Type the newest update here. When saved, it will be timestamped and placed at the top.</div>
+              <div class="editorNote">Click a tool to turn it on for what you type next, or select words first to format them. Saving timestamps the newest update.</div>
 
               <label>Latest Update</label>
               <div id="descriptionEditor" class="richEditor" contenteditable="true"></div>
@@ -193,6 +189,8 @@
 
       let savedRange = null;
       let existingDescriptionHtml = "";
+      let existingProject = null;
+      let highlightActive = false;
 
       function showMessage(text, type = "error") {
         pageMessage.textContent = text;
@@ -254,6 +252,19 @@
           let normalizedColor = "";
 
           if (
+            rawStyle.includes("background-color") ||
+            rawStyle.includes("background:") ||
+            rawStyle.includes("yellow") ||
+            rawStyle.includes("#fff2a8") ||
+            rawStyle.includes("rgb(255, 242, 168)")
+          ) {
+            const mark = document.createElement("mark");
+            mark.innerHTML = span.innerHTML;
+            span.replaceWith(mark);
+            return;
+          }
+
+          if (
             rawStyle.includes("#c62828") ||
             rawStyle.includes("red") ||
             rawStyle.includes("rgb(198, 40, 40)") ||
@@ -279,6 +290,47 @@
             parent.removeChild(span);
           }
         });
+      }
+
+      function updateToolButtonStates() {
+        if (applyBoldButton) {
+          applyBoldButton.classList.toggle("toolButtonActive", document.queryCommandState("bold"));
+        }
+        if (applyHighlightButton) {
+          applyHighlightButton.classList.toggle("toolButtonActive", highlightActive);
+        }
+      }
+
+      function selectionHasText(range) {
+        return !!range && !range.collapsed && !!range.toString().trim();
+      }
+
+      function applyEditorCommand(command) {
+        if (!editor) return;
+
+        editor.focus();
+
+        const range = restoreSelection() || getSelectionRangeInsideEditor();
+        if (range) {
+          const selection = window.getSelection();
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        }
+
+        if (command === "bold") {
+          document.execCommand("bold", false, null);
+        } else if (command === "highlight") {
+          highlightActive = selectionHasText(range) ? true : !highlightActive;
+          document.execCommand("hiliteColor", false, highlightActive ? "#fff2a8" : "transparent");
+          document.execCommand("backColor", false, highlightActive ? "#fff2a8" : "transparent");
+        }
+
+        normalizeEditorMarkup();
+        syncEditorToInput();
+        rememberSelection();
+        updateToolButtonStates();
       }
 
       function wrapSelectionWithTag(tagName) {
@@ -377,28 +429,32 @@
       });
 
       if (applyBoldButton) {
-        applyBoldButton.addEventListener("click", () => wrapSelectionWithTag("strong"));
+        applyBoldButton.addEventListener("click", () => applyEditorCommand("bold"));
       }
 
       if (applyHighlightButton) {
-        applyHighlightButton.addEventListener("click", () => wrapSelectionWithHighlight());
+        applyHighlightButton.addEventListener("click", () => applyEditorCommand("highlight"));
       }
 
       if (editor) {
         editor.addEventListener("mouseup", rememberSelectionFromEvent);
         editor.addEventListener("keyup", rememberSelectionFromEvent);
         editor.addEventListener("focus", rememberSelectionFromEvent);
+        editor.addEventListener("keyup", updateToolButtonStates);
+        editor.addEventListener("mouseup", updateToolButtonStates);
 
         editor.addEventListener("input", () => {
           normalizeEditorMarkup();
           syncEditorToInput();
           rememberSelection();
+          updateToolButtonStates();
         });
 
         if (!editor.innerHTML.trim()) editor.innerHTML = "";
 
         normalizeEditorMarkup();
         syncEditorToInput();
+        updateToolButtonStates();
       }
 
       document.addEventListener("selectionchange", () => {
@@ -419,6 +475,7 @@
           showMessage("Project not found.", "error");
           return;
         }
+        existingProject = project;
 
         document.getElementById("project_number").value = project.project_number || "";
         document.getElementById("project_name").value = project.project_name || "";
@@ -426,7 +483,6 @@
         document.getElementById("project_status").value = project.project_status || "No Contract";
         document.getElementById("sales_person").value = project.sales_person || "";
         document.getElementById("start_date").value = project.start_date || "";
-        document.getElementById("projected_end_date").value = project.projected_end_date || "";
 
         existingDescriptionHtml = project.description || project.description_html || "";
 
@@ -457,7 +513,7 @@
           project_status: document.getElementById("project_status").value,
           sales_person: document.getElementById("sales_person").value,
           start_date: document.getElementById("start_date").value,
-          projected_end_date: document.getElementById("projected_end_date").value,
+          projected_end_date: existingProject?.project_status === "Completed" ? (existingProject.projected_end_date || "") : "",
           description: finalDescriptionHtml,
           description_color: descriptionColorInput.value
         };

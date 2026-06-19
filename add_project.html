@@ -18,7 +18,7 @@
       .editorTools { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
       .toolLabel { font-size:13px; font-weight:700; color:#4d5d79; }
       .toolButton { min-height:40px; padding:0 16px; border-radius:12px; border:1px solid rgba(23,32,51,.12); background:#fff; color:#172033; cursor:pointer; font-weight:700; }
-      .toolButtonRed { background:#c62828; border-color:#c62828; color:#fff; }
+      .toolButtonHighlight { background:#fff2a8; border-color:#e6c84f; color:#172033; }
       .editorNote { margin:0 0 10px; color:#5c6680; font-size:13px; }
       .richEditor { width:100%; min-height:180px; padding:12px 14px; border-radius:14px; border:1px solid rgba(23,32,51,.14); font-size:15px; font-family:inherit; background:#fff; color:#172033; line-height:1.6; outline:none; box-sizing:border-box; }
       .richEditor:focus { border-color:rgba(39,94,254,.45); box-shadow:0 0 0 4px rgba(39,94,254,.08); }
@@ -101,12 +101,12 @@
               <label for="descriptionEditor">Description</label>
 
               <div class="editorTools">
-                <span class="toolLabel">Selected text color</span>
-                <button class="toolButton" id="applyBlackText" type="button" data-color="#000000">Black</button>
-                <button class="toolButton toolButtonRed" id="applyRedText" type="button" data-color="#c62828">Red</button>
+                <span class="toolLabel">Text tools</span>
+                <button class="toolButton" id="applyBoldText" type="button">Bold</button>
+                <button class="toolButton toolButtonHighlight" id="applyHighlightText" type="button">Highlight</button>
               </div>
 
-              <div class="editorNote">Highlight the words you want to change, then click Black or Red.</div>
+              <di<div class="editorNote">Type the newest update here. When saved, it will be timestamped and placed at the top.</div>
 
               <div id="descriptionEditor" class="richEditor" contenteditable="true"></div>
               <input id="description" name="description" type="hidden" />
@@ -125,28 +125,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="projects.js"></script>
     <script src="supabaseClient.js"></script>
-    
-
-    <script>
-      async function requireLogin() {
-        const { data, error } = await supabaseClient.auth.getSession();
-
-        if (error || !data.session) {
-          window.location.href = "login.html";
-          return;
-        }
-
-        console.log("Logged in as:", data.session.user.email);
-      }
-
-      requireLogin();
-    </script>
 
     <script>
       const editor = document.getElementById("descriptionEditor");
       const hiddenDescription = document.getElementById("description");
-      const applyBlackButton = document.getElementById("applyBlackText");
-      const applyRedButton = document.getElementById("applyRedText");
+      const applyBoldButton = document.getElementById("applyBoldText");
+      const applyHighlightButton = document.getElementById("applyHighlightText");
       const descriptionColorInput = document.getElementById("description_color");
       const form = document.getElementById("projectForm");
       const saveProjectBtn = document.getElementById("saveProjectBtn");
@@ -280,7 +264,7 @@
         rememberSelection();
       }
 
-      [applyBlackButton, applyRedButton].forEach(control => {
+      [applyBoldButton, applyHighlightButton].forEach(control => {
         if (!control) return;
 
         control.addEventListener("mousedown", event => {
@@ -289,12 +273,12 @@
         });
       });
 
-      if (applyBlackButton) {
-        applyBlackButton.addEventListener("click", () => wrapSelectionWithColor("#000000"));
+      if (applyBoldButton) {
+        applyBoldButton.addEventListener("click", () => wrapSelectionWithTag("strong"));
       }
 
-      if (applyRedButton) {
-        applyRedButton.addEventListener("click", () => wrapSelectionWithColor("#c62828"));
+      if (applyHighlightButton) {
+        applyHighlightButton.addEventListener("click", () => wrapSelectionWithHighlight());
       }
 
       if (editor) {
@@ -349,16 +333,6 @@
         saveProjectBtn.textContent = "Saving...";
 
         try {
-          const { data: sessionData } = await supabaseClient.auth.getSession();
-
-          if (!sessionData.session) {
-            showMessage("You are not logged in. Please sign in again.", "error");
-            window.location.href = "login.html";
-            return;
-          }
-
-          console.log("Saving as:", sessionData.session.user.email);
-
           await insertProject(result.project);
 
           showMessage("Project saved successfully.", "success");

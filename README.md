@@ -1,89 +1,137 @@
-# Engineering Dashboard + ESR Generator
+# ESR Engineering Dashboard
 
-This Flask app now has two main areas:
+This project is a browser-based engineering dashboard and ESR form generator.
 
-1. **Dashboard homepage** at `/`
-   - Shows current engineering workload
-   - Displays a colorful doughnut chart of active projects by engineer
-   - Lists active projects
-   - Includes an **Add Project** button
-   - Includes a **Generate ESR Form** button
+## What The Website Does
 
-2. **ESR generator** at `/form`
-   - Keeps the existing Release/JO → F-ENG-001 workflow
-   - Uses the same `/parse` and `/generate` endpoints as before
+- Shows active engineering projects from Supabase.
+- Tracks project engineer, sales person, contract status, start date, and update history.
+- Splits project notes into `Latest Update` and `Previous Updates`.
+- Lets logged-in users add, edit, delete, complete, and restore projects.
+- Keeps completed projects in a separate completed section.
+- Provides presentation mode for filtered project reviews.
+- Exports active projects as printable meeting notes.
+- Creates an updates-only printout for email workflows.
+- Generates ESR/F-ENG-001 forms from the ESR page.
 
-## Add Project protection
+## Main Pages
 
-The Add Project page is protected separately from the rest of the app.
+- `index.html`: dashboard, charts, active projects, completed projects, presentation mode, exports.
+- `add_project.html`: add a new project.
+- `edit_project.html`: add a new timestamped update to an existing project.
+- `login.html`: Supabase login.
+- `esr.html`: ESR form generator.
 
-Default credentials:
-- Username: `engineering@nswash.com`
-- Password: `28309@Crocker`
+## Project Data
 
-You can override them with environment variables:
+Projects are stored in the Supabase `projects` table.
 
-```bash
-export PROJECT_ADMIN_USERNAME="engineering@nswash.com"
-export PROJECT_ADMIN_PASSWORD_HASH="<werkzeug password hash>"
+The app expects fields like:
+
+- `project_number`
+- `project_name`
+- `engineer`
+- `project_status`
+- `sales_person`
+- `start_date`
+- `projected_end_date`
+- `description`
+- `description_html`
+- `description_color`
+- `created_at`
+
+`projected_end_date` is now used as the completed date for completed projects. It should allow `NULL` in Supabase:
+
+```sql
+alter table public.projects
+alter column projected_end_date drop not null;
 ```
 
-## Existing ESR flow
+## Project Updates
 
-The ESR UI now lives at `/form`.
+The dashboard renders project descriptions as:
 
-The dashboard button points to the local `/form` route.
+- `Latest Update`
+- `Previous Updates`
 
-## Optional whole-app auth
+New edits are timestamped and placed at the top. Imported old project notes can be moved into Previous Updates using the cleanup script below.
 
-The older whole-app auth pattern is still in the code for backward compatibility, but it is **off by default**.
+Red text from older project records is converted to bold text.
 
-```bash
-export AUTH_ENABLED=0
+## Completed Projects
+
+Logged-in users can click `Completed` on an active project. This:
+
+- Changes `project_status` to `Completed`.
+- Saves today as the completed date.
+- Moves the project out of Active Projects and into Completed Projects.
+
+Completed projects have a `Restore to Active` button in case something was marked complete by mistake.
+
+## Exports
+
+`Export Active PDF` creates a printable meeting-notes packet:
+
+- One project per page when possible.
+- Project information and update history at the top.
+- Discussion notes and action items at the bottom.
+
+`Email Updates` creates an updates-only printout without discussion notes or action items. Browser security does not allow the site to automatically attach a PDF to an email draft. For automatic sending with attachments, use a Supabase Edge Function and an email provider like Resend.
+
+## Import Old getesr.com Data
+
+The old hosted dashboard exposes its project list in the page source as `projectsData`.
+
+Preview/export only:
+
+```powershell
+cd "C:\Users\KayleeMorales\Documents\GitHub\ESR"
+& "C:\Users\KayleeMorales\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" .\tools\import-old-getesr-projects.mjs --dry-run
 ```
 
-If you turn it on, the entire app uses the legacy login session:
-- Username default: `NSCorp`
-- Password default: `28309@Crocker`
+Import into Supabase:
 
-## Project storage
-
-Projects are now stored in a SQLite database file.
-
-Default path:
-- `projects.db` in the app folder
-
-Optional environment variable:
-- `PROJECTS_DB_PATH`
-
-Examples:
-```bash
-# local
-export PROJECTS_DB_PATH=./projects.db
-
-# Render with a persistent disk mounted at /var/data
-export PROJECTS_DB_PATH=/var/data/projects.db
+```powershell
+cd "C:\Users\KayleeMorales\Documents\GitHub\ESR"
+$env:SUPABASE_EMAIL="your-login@example.com"
+$env:SUPABASE_PASSWORD="your-password"
+& "C:\Users\KayleeMorales\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" .\tools\import-old-getesr-projects.mjs
 ```
 
-The app will also automatically import any existing `projects.json` data into SQLite the first time it starts.
+The import script writes a local backup:
 
-## Run locally
-
-```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-
-pip install -r requirements.txt
-python app.py
+```text
+old-getesr-projects-export.json
 ```
 
-Open:
-- Dashboard: `http://localhost:5000`
-- ESR page: `http://localhost:5000/form`
+## Cleanup Imported Project Notes
 
-## Notes
+After importing old data, run this cleanup to:
 
-- The ESR parsing/filling logic is unchanged except that route redirects now return to `/esr` instead of `/`.
-- The dashboard chart updates automatically after a project is added.
-- Project numbers are treated as unique in the Add Project form.
+- Convert old red text to bold.
+- Move raw imported descriptions into Previous Updates.
+- Keep newer timestamped update history intact.
+
+Preview only:
+
+```powershell
+cd "C:\Users\KayleeMorales\Documents\GitHub\ESR"
+$env:SUPABASE_EMAIL="your-login@example.com"
+$env:SUPABASE_PASSWORD="your-password"
+& "C:\Users\KayleeMorales\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" .\tools\cleanup-imported-project-updates.mjs --dry-run
+```
+
+Apply cleanup:
+
+```powershell
+cd "C:\Users\KayleeMorales\Documents\GitHub\ESR"
+$env:SUPABASE_EMAIL="your-login@example.com"
+$env:SUPABASE_PASSWORD="your-password"
+& "C:\Users\KayleeMorales\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe" .\tools\cleanup-imported-project-updates.mjs
+```
+
+## Supabase Configuration
+
+The browser app reads Supabase settings from `supabaseClient.js`.
+
+Do not put private service-role keys or email-provider API keys in browser files. Use Supabase Edge Function secrets for server-side keys.

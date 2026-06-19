@@ -76,3 +76,33 @@ async function deleteProjectByNumber(projectNumber) {
   if (error) throw error;
   return true;
 }
+
+async function completeProjectByNumber(projectNumber, completedDate) {
+  const { data, error } = await supabaseClient
+    .from(PROJECTS_TABLE)
+    .update({
+      project_status: "Completed",
+      projected_end_date: completedDate
+    })
+    .ilike("project_number", projectNumber)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function restoreProjectByNumber(projectNumber) {
+  const { data, error } = await supabaseClient
+    .from(PROJECTS_TABLE)
+    .update({
+      project_status: "No Contract",
+      projected_end_date: null
+    })
+    .ilike("project_number", projectNumber)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

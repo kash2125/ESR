@@ -127,6 +127,20 @@
         min-height: 40px;
         font-size: 14px;
       }
+      .btnComplete {
+        color: #0f6b4f;
+        background: var(--green-bg);
+        border-color: rgba(18,184,134,0.18);
+        min-height: 40px;
+        font-size: 14px;
+      }
+      .btnRestore {
+        color: #28448c;
+        background: #f0f4ff;
+        border-color: rgba(39,94,254,0.16);
+        min-height: 40px;
+        font-size: 14px;
+      }
 
       .hero,
       .card,
@@ -161,7 +175,7 @@
       }
       .stats {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 16px;
         margin-top: 24px;
       }
@@ -170,6 +184,16 @@
         border-radius: 22px;
         border: 1px solid rgba(39,94,254,0.08);
         background: linear-gradient(180deg, #ffffff, #f7faff);
+      }
+      .statLink {
+        color: inherit;
+        text-decoration: none;
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+      }
+      .statLink:hover {
+        transform: translateY(-1px);
+        border-color: rgba(39,94,254,0.20);
+        box-shadow: var(--shadow-soft);
       }
       .stat h2 {
         margin: 0;
@@ -438,6 +462,80 @@
         font-size: 16px;
       }
 
+      .emailModalOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(20,32,51,0.52);
+        backdrop-filter: blur(8px);
+      }
+      .emailModalOverlay.isOpen { display: flex; }
+      .emailModal {
+        width: min(620px, 100%);
+        padding: 24px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+      .emailModal h3 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        letter-spacing: -0.04em;
+      }
+      .emailModal p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .emailField {
+        display: grid;
+        gap: 7px;
+        margin-top: 12px;
+      }
+      .emailField label,
+      .radioRow label {
+        font-size: 13px;
+        font-weight: 800;
+        color: #42516b;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .emailField input,
+      .emailField select {
+        min-height: 46px;
+        padding: 0 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(20,32,51,0.14);
+        font: inherit;
+      }
+      .radioRow {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .radioRow label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #f8faff;
+        border: 1px solid var(--line);
+      }
+      .modalActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+
       .presentationOverlay {
         position: fixed;
         inset: 0;
@@ -572,10 +670,14 @@
         <h1>Current Engineering Work Load</h1>
 
         <div class="stats">
-          <div class="stat">
+          <a class="stat statLink" href="#completed-projects">
+            <h2 id="completedCount">0</h2>
+            <span>Completed Projects</span>
+          </a>
+          <a class="stat statLink" href="#active-projects">
             <h2 id="totalProjects">0</h2>
             <span>Active Projects</span>
-          </div>
+          </a>
           <div class="stat">
             <h2 id="totalEngineers">0</h2>
             <span>Engineers Carrying Work</span>
@@ -630,12 +732,54 @@
               </div>
 
             <button class="iconBtn" id="openPresentationModeSection" type="button">Presentation Mode</button>
+            <button class="iconBtn" id="emailActiveProjectUpdates" type="button">Email Updates</button>
+            <button class="iconBtn" id="exportActiveProjectsPdf" type="button">Export Active PDF</button>
           </div>
           </div>
 
           <div class="projectsList" id="projectsList"></div>
           <div id="filteredEmptyState" class="empty">No projects match that Project Engineer filter.</div>
           </section>
+
+        <section class="card" id="completed-projects">
+          <div class="sectionTitle">
+            <div>
+              <h3>Completed Projects</h3>
+            </div>
+          </div>
+          <div class="projectsList" id="completedProjectsList"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="emailModalOverlay" id="emailUpdatesModal" aria-hidden="true">
+      <div class="emailModal" role="dialog" aria-modal="true" aria-labelledby="emailUpdatesTitle">
+        <h3 id="emailUpdatesTitle">Email Project Updates</h3>
+        <p>Create an updates-only PDF without meeting notes. For now, the dashboard opens your email draft and the printable PDF separately so you can save and attach it.</p>
+
+        <div class="radioRow">
+          <label><input type="radio" name="emailMode" value="now" checked /> Email now</label>
+          <label><input type="radio" name="emailMode" value="scheduled" /> Schedule repeatedly</label>
+        </div>
+
+        <div class="emailField">
+          <label for="emailRecipients">Recipients</label>
+          <input id="emailRecipients" type="text" placeholder="name@example.com, another@example.com" />
+        </div>
+
+        <div class="emailField" id="emailScheduleField" style="display:none;">
+          <label for="emailFrequency">Schedule</label>
+          <select id="emailFrequency">
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+
+        <div class="modalActions">
+          <button class="btn btnNeutral" id="cancelEmailUpdates" type="button">Cancel</button>
+          <button class="btn btnPrimary" id="sendEmailUpdates" type="button">Continue</button>
+        </div>
       </div>
     </div>
 
@@ -694,7 +838,9 @@
 
     <script>
       const palette = ['#2F67FF', '#57BCEB', '#35C79A', '#F0B846', '#FF7A95', '#7D73FF', '#4AB8C7', '#FF9960', '#9ACB39', '#6B7A90'];
+      let allProjectsData = [];
       let projectsData = [];
+      let completedProjectsData = [];
       const STORAGE_KEYS = {
         engineerFilter: 'engineeringDashboard.engineerFilter',
         projectSort: 'engineeringDashboard.projectSort'
@@ -772,6 +918,10 @@
         return cloned;
       }
 
+      function isCompletedProject(project) {
+        return String(project?.project_status || '').trim().toLowerCase() === 'completed';
+      }
+
       function renderPresentationMarkup(project) {
         if (!project) {
           return `<div class="empty">No projects match the current filter.</div>`;
@@ -793,7 +943,6 @@
             </div>
             <div class="presentationMetaGrid">
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Start Date</span><div class="presentationMetaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
-              <div class="presentationMetaItem"><span class="presentationMetaLabel">Projected End</span><div class="presentationMetaValue">${escapeHtml(project.projected_end_date || 'Not set')}</div></div>
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Added</span><div class="presentationMetaValue">${escapeHtml(addedText)}</div></div>
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Status</span><div class="presentationMetaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
             </div>
@@ -918,6 +1067,7 @@
           return;
         }
 
+        filterSelect.querySelectorAll('option:not([value="__all__"])').forEach(option => option.remove());
         const engineers = [...new Set(projectCards.map(card => (card.dataset.engineer || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
         engineers.forEach(engineer => {
           const option = document.createElement('option');
@@ -942,7 +1092,7 @@
           const sortedData = sortProjectsArray(projectsData, sortMode).filter(project => {
             return selectedEngineer === '__all__' || (project.engineer || '').trim() === selectedEngineer;
           });
-          setPresentationProjects(sortedData);
+          setPresentationProjects(sortedData, false);
 
           const sortedCards = [...projectCards];
           if (sortMode === 'project_number_asc') {
@@ -976,6 +1126,11 @@
         const prevBtn = document.getElementById('presentationPrevBtn');
         const nextBtn = document.getElementById('presentationNextBtn');
         if (!overlay || !openButtons.length) return;
+        if (overlay.dataset.presentationReady === 'true') {
+          updatePresentationCounter();
+          return;
+        }
+        overlay.dataset.presentationReady = 'true';
 
         function move(direction) {
           if (!presentationProjects.length) return;
@@ -990,6 +1145,7 @@
           overlay.classList.add('isOpen');
           overlay.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
+          presentationIndex = 0;
           animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], 'next');
           updatePresentationCounter();
         }
@@ -1038,6 +1194,7 @@ function renderStats() {
   document.getElementById('totalEngineers').textContent = engineers.size;
   document.getElementById('totalSalesPeople').textContent = salesPeople.size;
   document.getElementById('contractCount').textContent = contracts.length;
+  document.getElementById('completedCount').textContent = completedProjectsData.length;
 }
 
 function countBy(field) {
@@ -1061,7 +1218,7 @@ function renderCharts() {
 
 function renderProjectUpdates(descriptionHtml) {
   const rawDescription = (descriptionHtml || '').trim();
-  const fallbackLatest = 'No description added.';
+  const fallbackLatest = 'No latest update yet.';
   const noPrevious = 'No previous updates yet.';
 
   function nodesToHtml(nodes) {
@@ -1093,6 +1250,16 @@ function renderProjectUpdates(descriptionHtml) {
     const template = document.createElement('template');
     template.innerHTML = entryHtml;
     template.content.querySelectorAll('.updateSectionTitle').forEach(title => title.remove());
+    template.content.querySelectorAll('span[style]').forEach(span => {
+      const style = (span.getAttribute('style') || '').toLowerCase();
+      if (style.includes('#c62828') || style.includes('red') || style.includes('rgb(198, 40, 40)') || style.includes('rgb(198,40,40)')) {
+        const strong = document.createElement('strong');
+        strong.innerHTML = span.innerHTML;
+        span.replaceWith(strong);
+      } else if (style.includes('#000000') || style.includes('black') || style.includes('rgb(0, 0, 0)') || style.includes('rgb(0,0,0)')) {
+        span.removeAttribute('style');
+      }
+    });
     return template.innerHTML.trim();
   }
 
@@ -1101,8 +1268,13 @@ function renderProjectUpdates(descriptionHtml) {
 
   let entries = [];
   const latestUpdateBox = template.content.querySelector('.latestUpdateBox');
+  const allPreviousBox = template.content.querySelector('[data-all-previous-updates="true"]');
 
-  if (latestUpdateBox) {
+  if (allPreviousBox) {
+    entries = Array.from(allPreviousBox.querySelectorAll('.descriptionEntry, .projectUpdate'))
+      .map(entry => normalizeOldEntry(entry.innerHTML.trim()))
+      .filter(Boolean);
+  } else if (latestUpdateBox) {
     const latestClone = latestUpdateBox.cloneNode(true);
     latestClone.querySelectorAll('.updateSectionTitle').forEach(title => title.remove());
     const latestContent = latestClone.querySelector('.latestUpdateContent, .projectUpdate');
@@ -1133,8 +1305,8 @@ function renderProjectUpdates(descriptionHtml) {
     entries = [rawDescription];
   }
 
-  const latestUpdate = entries[0] || fallbackLatest;
-  const previousUpdates = entries.slice(1);
+  const latestUpdate = allPreviousBox ? fallbackLatest : (entries[0] || fallbackLatest);
+  const previousUpdates = allPreviousBox ? entries : entries.slice(1);
 
   return `
     <section class="latestUpdateBox">
@@ -1155,7 +1327,7 @@ function renderProjects() {
   const list = document.getElementById('projectsList');
 
   if (!projectsData.length) {
-    list.innerHTML = `<div class="empty">No active projects yet. Add projects in projects.json.</div>`;
+    list.innerHTML = `<div class="empty">No active projects yet.</div>`;
     return;
   }
 
@@ -1180,7 +1352,6 @@ function renderProjects() {
 
         <div class="metaGrid">
           <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
-          <div class="metaItem"><span class="metaLabel">Projected End</span><div class="metaValue">${escapeHtml(project.projected_end_date || 'Not set')}</div></div>
           <div class="metaItem"><span class="metaLabel">Added</span><div class="metaValue">${escapeHtml(addedText)}</div></div>
           <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
         </div>
@@ -1192,6 +1363,10 @@ function renderProjects() {
             Edit
           </a>
 
+          <button class="btn btnComplete" type="button" onclick="completeProjectFromDashboard('${escapeHtml(project.project_number)}')">
+            Completed
+          </button>
+
           <button class="btn btnDanger" type="button" onclick="deleteProjectFromDashboard('${escapeHtml(project.project_number)}')">
             Delete
           </button>
@@ -1201,23 +1376,339 @@ function renderProjects() {
   }).join('');
 }
 
+function renderCompletedProjects() {
+  const list = document.getElementById('completedProjectsList');
+  if (!list) return;
+
+  if (!completedProjectsData.length) {
+    list.innerHTML = `<div class="empty">No completed projects yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = completedProjectsData.map(project => {
+    const completedDate = project.projected_end_date || 'Not set';
+
+    return `
+      <article class="projectItem">
+        <div class="projectTop">
+          <div>
+            <span class="projectNumber">${escapeHtml(project.project_number || '')}</span>
+            <div class="projectName">${escapeHtml(project.project_name || '')}</div>
+          </div>
+          <div class="projectMeta">Completed: <strong>${escapeHtml(completedDate)}</strong></div>
+        </div>
+
+        <div class="badgeRow">
+          <span class="badge badgeContract">Completed</span>
+          <span class="badge badgeSales">Project Engineer: ${escapeHtml(project.engineer || 'Not set')}</span>
+          <span class="badge badgeSales">Sales Person: ${escapeHtml(project.sales_person || 'Unassigned')}</span>
+        </div>
+
+        <div class="metaGrid">
+          <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
+          <div class="metaItem"><span class="metaLabel">Completed Date</span><div class="metaValue">${escapeHtml(completedDate)}</div></div>
+          <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">Completed</div></div>
+        </div>
+
+        <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description)}</div>
+
+        <div class="projectActions authOnlyActions" style="display:none;">
+          <button class="btn btnRestore" type="button" onclick="restoreProjectFromDashboard('${escapeHtml(project.project_number)}')">
+            Restore to Active
+          </button>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function exportActiveProjectsPdf() {
+  if (!projectsData.length) {
+    alert("There are no active projects to export.");
+    return;
+  }
+
+  const reportRows = projectsData.map(project => {
+    return `
+      <article class="notesSheet">
+        <header class="sheetHeader">
+          <div>
+            <div class="sheetKicker">Project Notes</div>
+            <h2>${escapeHtml(project.project_name || "Untitled Project")}</h2>
+            <div class="projectNumber">${escapeHtml(project.project_number || "")}</div>
+          </div>
+        </header>
+        <div class="notesGrid">
+          <div class="noteField"><span>Project Engineer</span><strong>${escapeHtml(project.engineer || "Not set")}</strong></div>
+          <div class="noteField"><span>Sales Person</span><strong>${escapeHtml(project.sales_person || "Unassigned")}</strong></div>
+          <div class="noteField"><span>Start Date</span><strong>${escapeHtml(project.start_date || "Not set")}</strong></div>
+          <div class="noteField"><span>Status</span><strong>${escapeHtml(project.project_status || "No Contract")}</strong></div>
+        </div>
+        <section class="sheetUpdates">
+          <div class="sectionLabel">Existing Job Notes / Update History</div>
+          <div class="updatesBox">${renderProjectUpdates(project.description_html || project.description)}</div>
+        </section>
+        <section class="notesBlock">
+          <div class="sectionLabel">Discussion Notes</div>
+          <div class="noteLines"></div>
+        </section>
+        <section class="actionBlock">
+          <div class="sectionLabel">Action Items</div>
+          <table>
+            <thead>
+              <tr><th>Item</th><th>Owner</th><th>Due</th><th>Done</th></tr>
+            </thead>
+            <tbody>
+              <tr><td></td><td></td><td></td><td></td></tr>
+              <tr><td></td><td></td><td></td><td></td></tr>
+              <tr><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </article>`;
+  }).join("");
+
+  const reportWindow = window.open("", "_blank");
+  if (!reportWindow) {
+    alert("Please allow pop-ups for this dashboard, then try exporting again.");
+    return;
+  }
+
+  reportWindow.document.write(`<!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Active Projects Report</title>
+        <style>
+          * { box-sizing: border-box; }
+          @page { size: letter; margin: 0.3in; }
+          body { margin: 0; font-family: Arial, sans-serif; color: #172033; background: #ffffff; }
+          .notesSheet { min-height: 10.4in; break-after: page; page-break-after: always; padding: 0; position: relative; }
+          .notesSheet::before { content: ""; position: absolute; inset: 0; border: 1px solid #d9e1f2; border-radius: 16px; pointer-events: none; }
+          .notesSheet:last-child { break-after: auto; page-break-after: auto; }
+          .sheetHeader { margin: 0 12px 7px; padding: 11px 0 7px; border-bottom: 2px solid #172033; }
+          .sheetKicker { color: #5c6680; font-weight: 800; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+          .projectNumber { margin-top: 4px; color: #28448c; font-weight: 800; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+          h2 { margin: 2px 0 0; font-size: 20px; line-height: 1.08; }
+          .notesGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 12px 7px; }
+          .noteField { min-height: 36px; padding: 5px 7px; border: 1px solid #d9e1f2; border-radius: 9px; background: #fbfcff; }
+          .noteField span, .sectionLabel, .updateSectionTitle { display: block; color: #5c6680; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+          .noteField strong { font-size: 11px; font-weight: 700; }
+          .sheetUpdates { border: 1px solid #cfd8ea; border-radius: 10px; padding: 7px; margin: 0 12px 7px; background: linear-gradient(180deg, #fbfcff, #ffffff); }
+          .updatesBox { font-size: 9.5px; line-height: 1.22; }
+          .latestUpdateBox { padding: 5px; margin-bottom: 5px; border: 1px solid #e1e7f2; border-radius: 8px; background: #ffffff; }
+          .previousUpdatesBox { margin-top: 2px; }
+          .projectUpdate { padding: 0; }
+          .dashboardScrollBox .projectUpdate { padding: 4px 5px; margin-bottom: 4px; border: 1px solid #edf1f8; border-radius: 7px; background: rgba(255,255,255,.72); }
+          .dashboardScrollBox .projectUpdate:last-child { margin-bottom: 0; }
+          .notesBlock { margin: 0 12px; }
+          .noteLines { height: 2.85in; border: 1px solid #cfd8ea; border-radius: 10px; background: repeating-linear-gradient(to bottom, #fff 0, #fff 21px, #d6deed 22px); }
+          .actionBlock { margin: 7px 12px 0; }
+          table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; }
+          th { height: 20px; color: #5c6680; text-transform: uppercase; letter-spacing: .05em; font-size: 9px; text-align: left; background: #f8faff; }
+          th, td { border: 1px solid #cfd8ea; padding: 4px; }
+          td { height: 25px; }
+          th:nth-child(1), td:nth-child(1) { width: 52%; }
+          th:nth-child(2), td:nth-child(2) { width: 20%; }
+          th:nth-child(3), td:nth-child(3) { width: 16%; }
+          th:nth-child(4), td:nth-child(4) { width: 12%; }
+        </style>
+      </head>
+      <body>
+        ${reportRows}
+        <script>
+          window.addEventListener("load", () => {
+            try {
+              document.title = "Active Project Notes";
+              history.replaceState(null, "Active Project Notes", "active-project-notes");
+            } catch (error) {}
+            window.focus();
+            window.print();
+          });
+        <\/script>
+      </body>
+    </html>`);
+  reportWindow.document.close();
+}
+
+function initExportActiveProjectsPdf() {
+  const exportButton = document.getElementById("exportActiveProjectsPdf");
+  if (!exportButton || exportButton.dataset.exportReady === "true") return;
+  exportButton.dataset.exportReady = "true";
+  exportButton.addEventListener("click", exportActiveProjectsPdf);
+}
+
+function exportActiveUpdatesPdf() {
+  if (!projectsData.length) {
+    alert("There are no active projects to export.");
+    return false;
+  }
+
+  const reportRows = projectsData.map(project => `
+    <article class="updateSheet">
+      <header>
+        <div>
+          <div class="kicker">Project Update</div>
+          <h2>${escapeHtml(project.project_name || "Untitled Project")}</h2>
+          <div class="projectNumber">${escapeHtml(project.project_number || "")}</div>
+        </div>
+        <div class="status">${escapeHtml(project.project_status || "No Contract")}</div>
+      </header>
+      <div class="meta">
+        <div><span>Project Engineer</span><strong>${escapeHtml(project.engineer || "Not set")}</strong></div>
+        <div><span>Sales Person</span><strong>${escapeHtml(project.sales_person || "Unassigned")}</strong></div>
+        <div><span>Start Date</span><strong>${escapeHtml(project.start_date || "Not set")}</strong></div>
+      </div>
+      <section class="updates">
+        ${renderProjectUpdates(project.description_html || project.description)}
+      </section>
+    </article>
+  `).join("");
+
+  const reportWindow = window.open("", "_blank");
+  if (!reportWindow) {
+    alert("Please allow pop-ups for this dashboard, then try again.");
+    return false;
+  }
+
+  reportWindow.document.write(`<!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Active Project Updates</title>
+        <style>
+          * { box-sizing: border-box; }
+          @page { size: letter; margin: 0.38in; }
+          body { margin: 0; font-family: Arial, sans-serif; color: #172033; background: #fff; }
+          .updateSheet { break-after: page; page-break-after: always; border: 1px solid #d9e1f2; border-radius: 16px; padding: 16px; }
+          .updateSheet:last-child { break-after: auto; page-break-after: auto; }
+          header { display: flex; justify-content: space-between; gap: 18px; border-bottom: 2px solid #172033; padding-bottom: 10px; margin-bottom: 12px; }
+          .kicker, .meta span, .updateSectionTitle { display: block; color: #5c6680; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+          h2 { margin: 2px 0 0; font-size: 24px; line-height: 1.1; }
+          .projectNumber { margin-top: 5px; color: #28448c; font-weight: 800; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+          .status { align-self: flex-start; padding: 6px 10px; border-radius: 999px; background: #eef3ff; color: #28448c; font-size: 12px; font-weight: 800; white-space: nowrap; }
+          .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+          .meta div { border: 1px solid #d9e1f2; border-radius: 10px; padding: 8px; background: #fbfcff; }
+          .meta strong { font-size: 12px; }
+          .updates { border: 1px solid #cfd8ea; border-radius: 12px; padding: 12px; background: linear-gradient(180deg, #fbfcff, #fff); font-size: 12px; line-height: 1.45; }
+          .latestUpdateBox { padding: 9px; margin-bottom: 9px; border: 1px solid #e1e7f2; border-radius: 10px; background: #fff; }
+          .dashboardScrollBox .projectUpdate { padding: 8px; margin-bottom: 7px; border: 1px solid #edf1f8; border-radius: 9px; background: rgba(255,255,255,.75); }
+          .dashboardScrollBox .projectUpdate:last-child { margin-bottom: 0; }
+        </style>
+      </head>
+      <body>
+        ${reportRows}
+        <script>
+          window.addEventListener("load", () => {
+            try {
+              document.title = "Active Project Updates";
+              history.replaceState(null, "Active Project Updates", "active-project-updates");
+            } catch (error) {}
+            window.focus();
+            window.print();
+          });
+        <\/script>
+      </body>
+    </html>`);
+  reportWindow.document.close();
+  return true;
+}
+
+function initEmailUpdatesModal() {
+  const openButton = document.getElementById("emailActiveProjectUpdates");
+  const modal = document.getElementById("emailUpdatesModal");
+  const cancelButton = document.getElementById("cancelEmailUpdates");
+  const continueButton = document.getElementById("sendEmailUpdates");
+  const recipientsInput = document.getElementById("emailRecipients");
+  const scheduleField = document.getElementById("emailScheduleField");
+  const frequencySelect = document.getElementById("emailFrequency");
+  if (!openButton || !modal || openButton.dataset.emailReady === "true") return;
+
+  openButton.dataset.emailReady = "true";
+
+  function selectedMode() {
+    return document.querySelector('input[name="emailMode"]:checked')?.value || "now";
+  }
+
+  function closeModal() {
+    modal.classList.remove("isOpen");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  document.querySelectorAll('input[name="emailMode"]').forEach(input => {
+    input.addEventListener("change", () => {
+      if (scheduleField) scheduleField.style.display = selectedMode() === "scheduled" ? "grid" : "none";
+    });
+  });
+
+  openButton.addEventListener("click", () => {
+    modal.classList.add("isOpen");
+    modal.setAttribute("aria-hidden", "false");
+    if (recipientsInput) recipientsInput.focus();
+  });
+
+  if (cancelButton) cancelButton.addEventListener("click", closeModal);
+  modal.addEventListener("click", event => {
+    if (event.target === modal) closeModal();
+  });
+
+  if (continueButton) {
+    continueButton.addEventListener("click", () => {
+      const recipients = (recipientsInput?.value || "").trim();
+      if (!recipients) {
+        alert("Add at least one recipient email address.");
+        return;
+      }
+
+      if (selectedMode() === "scheduled") {
+        localStorage.setItem("engineeringDashboard.emailScheduleDraft", JSON.stringify({
+          recipients,
+          frequency: frequencySelect?.value || "weekly",
+          created_at: new Date().toISOString()
+        }));
+        alert("I saved this schedule draft in this browser. To actually send repeated emails, add the Supabase SQL/table and an Edge Function or email service. I included the SQL in my response.");
+        closeModal();
+        return;
+      }
+
+      const opened = exportActiveUpdatesPdf();
+      const mailRecipients = recipients.split(",").map(email => email.trim()).filter(Boolean).join(",");
+      const subject = encodeURIComponent("Active Project Updates");
+      const body = encodeURIComponent("Hi,\n\nPlease see the attached active project updates PDF.\n\nNote: save the opened updates report as a PDF, then attach it to this email.");
+      window.location.href = `mailto:${mailRecipients}?subject=${subject}&body=${body}`;
+      if (opened) closeModal();
+    });
+  }
+}
+
       async function loadDashboardProjects() {
         try {
-          projectsData = await loadSupabaseProjects();
+          allProjectsData = await loadSupabaseProjects();
+          projectsData = allProjectsData.filter(project => !isCompletedProject(project));
+          completedProjectsData = allProjectsData
+            .filter(isCompletedProject)
+            .sort((a, b) => String(b.projected_end_date || '').localeCompare(String(a.projected_end_date || '')));
 
           renderStats();
           renderProjects();
+          renderCompletedProjects();
           await updateDashboardAuthState();
           renderCharts();
 
           initProjectList();
           initPresentationMode();
+          initExportActiveProjectsPdf();
+          initEmailUpdatesModal();
         } catch (error) {
           console.error(error);
+          allProjectsData = [];
           projectsData = [];
+          completedProjectsData = [];
 
           document.getElementById("projectsList").innerHTML =
             `<div class="empty">Could not load projects from Supabase.</div>`;
+          const completedList = document.getElementById("completedProjectsList");
+          if (completedList) completedList.innerHTML = `<div class="empty">Could not load completed projects from Supabase.</div>`;
         }
       }
       let dashboardIsLoggedIn = false;
@@ -1246,6 +1737,43 @@ function renderProjects() {
         } catch (error) {
           console.error(error);
           alert(error.message || "Could not delete project.");
+        }
+      }
+
+      async function completeProjectFromDashboard(projectNumber) {
+        if (!dashboardIsLoggedIn) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const completedDate = new Date().toISOString().slice(0, 10);
+        const confirmed = confirm(`Mark project ${projectNumber} completed as of ${completedDate}?`);
+        if (!confirmed) return;
+
+        try {
+          await completeProjectByNumber(projectNumber, completedDate);
+          await loadDashboardProjects();
+        } catch (error) {
+          console.error(error);
+          alert(error.message || "Could not mark project completed.");
+        }
+      }
+
+      async function restoreProjectFromDashboard(projectNumber) {
+        if (!dashboardIsLoggedIn) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const confirmed = confirm(`Move project ${projectNumber} back to active projects?`);
+        if (!confirmed) return;
+
+        try {
+          await restoreProjectByNumber(projectNumber);
+          await loadDashboardProjects();
+        } catch (error) {
+          console.error(error);
+          alert(error.message || "Could not restore project.");
         }
       }
       loadDashboardProjects();
