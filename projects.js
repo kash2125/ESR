@@ -70,7 +70,7 @@ function sanitizeDescriptionHtml(value) {
   temp.innerHTML = String(value || "").trim();
 
   temp.querySelectorAll("*").forEach(node => {
-    const allowedTags = ["SPAN", "STRONG", "B", "EM", "I", "U", "BR", "DIV", "P", "UL", "OL", "LI"];
+    const allowedTags = ["SPAN", "STRONG", "B", "EM", "I", "U", "BR", "DIV", "P", "UL", "OL", "LI", "MARK", "HR"];
 
     if (!allowedTags.includes(node.tagName)) {
       node.replaceWith(...node.childNodes);

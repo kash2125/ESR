@@ -18,7 +18,7 @@
       .editorTools { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
       .toolLabel { font-size:13px; font-weight:700; color:#4d5d79; }
       .toolButton { min-height:40px; padding:0 16px; border-radius:12px; border:1px solid rgba(23,32,51,.12); background:#fff; color:#172033; cursor:pointer; font-weight:700; }
-      .toolButtonRed { background:#c62828; border-color:#c62828; color:#fff; }
+      .toolButtonHighlight { background:#fff2a8; border-color:#e6c84f; color:#172033; }
       .editorNote { margin:0 0 10px; color:#5c6680; font-size:13px; }
       .richEditor { width:100%; min-height:180px; padding:12px 14px; border-radius:14px; border:1px solid rgba(23,32,51,.14); font-size:15px; font-family:inherit; background:#fff; color:#172033; line-height:1.6; outline:none; box-sizing:border-box; }
       .richEditor:focus { border-color:rgba(39,94,254,.45); box-shadow:0 0 0 4px rgba(39,94,254,.08); }
@@ -31,6 +31,37 @@
       .flash { margin:0 0 16px; padding:12px 14px; border-radius:12px; background:#fff4e5; color:#9a4d00; border:1px solid rgba(245,159,0,.25); }
       .flash.success { background:#ecfdf3; color:#166534; border-color:rgba(34,197,94,.25); }
       .flash.error { background:#fff4e5; color:#9a4d00; border-color:rgba(245,159,0,.25); }
+      .historyBox {
+        margin-top: 10px;
+        padding: 18px;
+        border-radius: 14px;
+        border: 1px solid rgba(23,32,51,.14);
+        background: #f8faff;
+        max-height: 450px;
+        overflow-y: auto;
+      }
+
+      .historyEntry {
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(23,32,51,.12);
+      }
+
+      .historyEntry:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+
+      .historyDate {
+        font-weight: 700;
+        color: #172033;
+        margin-bottom: 8px;
+      }
+
+      .historyText {
+        color: #5c6680;
+        line-height: 1.6;
+      }
       @media (max-width:680px) { .grid { grid-template-columns:1fr; } }
     </style>
   </head>
@@ -101,14 +132,21 @@
               <label for="descriptionEditor">Description</label>
 
               <div class="editorTools">
-                <span class="toolLabel">Selected text color</span>
-                <button class="toolButton" id="applyBlackText" type="button" data-color="#000000">Black</button>
-                <button class="toolButton toolButtonRed" id="applyRedText" type="button" data-color="#c62828">Red</button>
+                <span class="toolLabel">Text tools</span>
+                <button class="toolButton" id="applyBoldText" type="button">Bold</button>
+                <button class="toolButton toolButtonHighlight" id="applyHighlightText" type="button">Highlight</button>
               </div>
 
-              <div class="editorNote">Highlight the words you want to change, then click Black or Red.</div>
+              <div class="editorNote">Type the newest update here. When saved, it will be timestamped and placed at the top.</div>
 
+              <label>Latest Update</label>
               <div id="descriptionEditor" class="richEditor" contenteditable="true"></div>
+              <div class="fieldFull">
+                <label>Previous Updates</label>
+
+                <div id="historyContainer" class="historyBox">
+                </div>
+              </div>
               <input id="description" name="description" type="hidden" />
               <input id="description_color" name="description_color" type="hidden" value="#000000" />
             </div>
@@ -144,8 +182,8 @@
     <script>
       const editor = document.getElementById("descriptionEditor");
       const hiddenDescription = document.getElementById("description");
-      const applyBlackButton = document.getElementById("applyBlackText");
-      const applyRedButton = document.getElementById("applyRedText");
+      const applyBoldButton = document.getElementById("applyBoldText");
+      const applyHighlightButton = document.getElementById("applyHighlightText");
       const descriptionColorInput = document.getElementById("description_color");
       const form = document.getElementById("projectForm");
       const saveProjectBtn = document.getElementById("saveProjectBtn");
@@ -154,6 +192,7 @@
       const originalProjectNumber = params.get("project");
 
       let savedRange = null;
+      let existingDescriptionHtml = "";
 
       function showMessage(text, type = "error") {
         pageMessage.textContent = text;
@@ -242,7 +281,7 @@
         });
       }
 
-      function wrapSelectionWithColor(hexColor) {
+      function wrapSelectionWithTag(tagName) {
         if (!editor) return;
 
         editor.focus();
@@ -253,8 +292,7 @@
         const extracted = range.extractContents();
         if (!extracted.textContent || !extracted.textContent.trim()) return;
 
-        const wrapper = document.createElement("span");
-        wrapper.setAttribute("style", `color: ${hexColor};`);
+        const wrapper = document.createElement(tagName);
         wrapper.appendChild(extracted);
         range.insertNode(wrapper);
 
@@ -269,19 +307,67 @@
         }
 
         normalizeEditorMarkup();
+        syncEditorToInput();
+      }
 
-        if (descriptionColorInput) {
-          descriptionColorInput.value = hexColor;
+      function wrapSelectionWithHighlight() {
+        if (!editor) return;
+
+        editor.focus();
+
+        const range = restoreSelection() || getSelectionRangeInsideEditor();
+        if (!range || range.collapsed) return;
+
+        const extracted = range.extractContents();
+        if (!extracted.textContent || !extracted.textContent.trim()) return;
+
+        const wrapper = document.createElement("mark");
+        wrapper.appendChild(extracted);
+        range.insertNode(wrapper);
+
+        const newRange = document.createRange();
+        newRange.selectNodeContents(wrapper);
+        savedRange = newRange.cloneRange();
+
+        const selection = window.getSelection();
+        if (selection) {
+          selection.removeAllRanges();
+          selection.addRange(newRange);
         }
 
+        normalizeEditorMarkup();
         syncEditorToInput();
+      }
+
+      function getTimestampLabel() {
+        return new Date().toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "numeric",
+          minute: "2-digit"
+        });
+      }
+
+      function buildTimestampedDescription(newHtml, oldHtml = "") {
+        const cleanNew = String(newHtml || "").trim();
+        const cleanOld = String(oldHtml || "").trim();
+
+        const entry = `
+          <div class="descriptionEntry">
+            <div><strong>${getTimestampLabel()}</strong></div>
+            <div>${cleanNew}</div>
+          </div>
+        `;
+
+        return cleanOld ? `${entry}<hr>${cleanOld}` : entry;
       }
 
       function rememberSelectionFromEvent() {
         rememberSelection();
       }
 
-      [applyBlackButton, applyRedButton].forEach(control => {
+      [applyBoldButton, applyHighlightButton].forEach(control => {
         if (!control) return;
 
         control.addEventListener("mousedown", event => {
@@ -290,12 +376,12 @@
         });
       });
 
-      if (applyBlackButton) {
-        applyBlackButton.addEventListener("click", () => wrapSelectionWithColor("#000000"));
+      if (applyBoldButton) {
+        applyBoldButton.addEventListener("click", () => wrapSelectionWithTag("strong"));
       }
 
-      if (applyRedButton) {
-        applyRedButton.addEventListener("click", () => wrapSelectionWithColor("#c62828"));
+      if (applyHighlightButton) {
+        applyHighlightButton.addEventListener("click", () => wrapSelectionWithHighlight());
       }
 
       if (editor) {
@@ -342,8 +428,15 @@
         document.getElementById("start_date").value = project.start_date || "";
         document.getElementById("projected_end_date").value = project.projected_end_date || "";
 
-        editor.innerHTML = project.description || project.description_html || "";
-        hiddenDescription.value = editor.innerHTML.trim();
+        existingDescriptionHtml = project.description || project.description_html || "";
+
+        const historyContainer = document.getElementById("historyContainer");
+        if (historyContainer) {
+          historyContainer.innerHTML = existingDescriptionHtml || "<div class='historyText'>No previous updates yet.</div>";
+        }
+
+        editor.innerHTML = "";
+        hiddenDescription.value = "";
       }
 
       form.addEventListener("submit", async event => {
@@ -351,6 +444,11 @@
 
         normalizeEditorMarkup();
         syncEditorToInput();
+        
+        const finalDescriptionHtml = buildTimestampedDescription(
+          hiddenDescription.value,
+          typeof existingDescriptionHtml !== "undefined" ? existingDescriptionHtml : ""
+        );
 
         const formValues = {
           project_number: document.getElementById("project_number").value,
@@ -360,7 +458,7 @@
           sales_person: document.getElementById("sales_person").value,
           start_date: document.getElementById("start_date").value,
           projected_end_date: document.getElementById("projected_end_date").value,
-          description: hiddenDescription.value,
+          description: finalDescriptionHtml,
           description_color: descriptionColorInput.value
         };
 

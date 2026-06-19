@@ -391,6 +391,37 @@
         background: var(--panel-soft);
         border: 1px solid var(--line);
         min-height: 90px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      .projectDescription { height: 260px; }
+      .presentationDescription { height: 360px; }
+      .latestUpdateBox {
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(23,32,51,.12);
+      }
+      .previousUpdatesBox {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .dashboardScrollBox {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      .dashboardScrollBox .projectUpdate {
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid rgba(23,32,51,.12);
+      }
+      .dashboardScrollBox .projectUpdate:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
       }
       .projectActions { margin-top: 16px; justify-content: flex-end; }
       .inlineForm { margin: 0; }
@@ -766,7 +797,7 @@
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Added</span><div class="presentationMetaValue">${escapeHtml(addedText)}</div></div>
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Status</span><div class="presentationMetaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
             </div>
-            <div class="presentationDescription">${project.description_html || 'No description added.'}</div>
+            <div class="presentationDescription">${renderProjectUpdates(project.description_html || project.description)}</div>
           </div>`;
       }
 
@@ -998,26 +1029,6 @@
           if (overlay.classList.contains('isOpen') && event.key === 'ArrowRight') move('next');
         });
       }
-      async function loadDashboardProjects() {
-        try {
-          projectsData = await loadSupabaseProjects();
-
-          renderStats();
-          renderProjects();
-          await updateDashboardAuthState();
-          renderCharts();
-
-          initProjectList();
-          initPresentationMode();
-        } catch (error) {
-          console.error(error);
-          projectsData = [];
-
-          document.getElementById("projectsList").innerHTML =
-            `<div class="empty">Could not load projects from Supabase.</div>`;
-        }
-      }
-
 function renderStats() {
   const engineers = new Set(projectsData.map(p => p.engineer).filter(Boolean));
   const salesPeople = new Set(projectsData.map(p => p.sales_person).filter(Boolean));
@@ -1046,6 +1057,98 @@ function renderCharts() {
   makeDoughnut('engineerChart', Object.keys(engineers), Object.values(engineers), 'No engineer data yet.');
   makeDoughnut('salesChart', Object.keys(sales), Object.values(sales), 'No sales-person data yet.');
   makeDoughnut('statusChart', Object.keys(status), Object.values(status), 'No contract-status data yet.');
+}
+
+function renderProjectUpdates(descriptionHtml) {
+  const rawDescription = (descriptionHtml || '').trim();
+  const fallbackLatest = 'No description added.';
+  const noPrevious = 'No previous updates yet.';
+
+  function nodesToHtml(nodes) {
+    const wrapper = document.createElement('div');
+    nodes.forEach(node => wrapper.appendChild(node.cloneNode(true)));
+    return wrapper.innerHTML.trim();
+  }
+
+  function splitByHr(fragment) {
+    const entries = [];
+    let currentNodes = [];
+
+    fragment.childNodes.forEach(node => {
+      if (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === 'hr') {
+        const html = nodesToHtml(currentNodes);
+        if (html) entries.push(html);
+        currentNodes = [];
+      } else {
+        currentNodes.push(node);
+      }
+    });
+
+    const finalHtml = nodesToHtml(currentNodes);
+    if (finalHtml) entries.push(finalHtml);
+    return entries;
+  }
+
+  function normalizeOldEntry(entryHtml) {
+    const template = document.createElement('template');
+    template.innerHTML = entryHtml;
+    template.content.querySelectorAll('.updateSectionTitle').forEach(title => title.remove());
+    return template.innerHTML.trim();
+  }
+
+  const template = document.createElement('template');
+  template.innerHTML = rawDescription;
+
+  let entries = [];
+  const latestUpdateBox = template.content.querySelector('.latestUpdateBox');
+
+  if (latestUpdateBox) {
+    const latestClone = latestUpdateBox.cloneNode(true);
+    latestClone.querySelectorAll('.updateSectionTitle').forEach(title => title.remove());
+    const latestContent = latestClone.querySelector('.latestUpdateContent, .projectUpdate');
+    const latestHtml = latestContent ? latestContent.innerHTML.trim() : latestClone.innerHTML.trim();
+    if (latestHtml) entries.push(latestHtml);
+
+    const previousRoot = template.content.querySelector('.previousUpdatesBox') || template.content;
+    const previousEntries = Array.from(previousRoot.querySelectorAll('.descriptionEntry, .projectUpdate'))
+      .filter(entry => !latestUpdateBox.contains(entry))
+      .map(entry => normalizeOldEntry(entry.innerHTML.trim()))
+      .filter(entry => entry && entry !== noPrevious);
+    entries = entries.concat(previousEntries);
+  } else {
+    const descriptionEntries = Array.from(template.content.querySelectorAll('.descriptionEntry'));
+    const oldUpdateEntries = descriptionEntries.length
+      ? descriptionEntries
+      : Array.from(template.content.querySelectorAll('.projectUpdate'));
+    entries = oldUpdateEntries
+      .map(entry => normalizeOldEntry(entry.innerHTML.trim()))
+      .filter(Boolean);
+  }
+
+  if (!entries.length && template.content.querySelector('hr')) {
+    entries = splitByHr(template.content).map(normalizeOldEntry).filter(Boolean);
+  }
+
+  if (!entries.length && rawDescription) {
+    entries = [rawDescription];
+  }
+
+  const latestUpdate = entries[0] || fallbackLatest;
+  const previousUpdates = entries.slice(1);
+
+  return `
+    <section class="latestUpdateBox">
+      <div class="updateSectionTitle">Latest Update</div>
+      <div class="projectUpdate">${latestUpdate}</div>
+    </section>
+    <section class="previousUpdatesBox">
+      <div class="updateSectionTitle">Previous Updates</div>
+      <div class="dashboardScrollBox">
+        ${previousUpdates.length
+          ? previousUpdates.map(update => `<div class="projectUpdate">${update}</div>`).join('')
+          : `<div class="projectUpdate">${noPrevious}</div>`}
+      </div>
+    </section>`;
 }
 
 function renderProjects() {
@@ -1082,7 +1185,7 @@ function renderProjects() {
           <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
         </div>
 
-       <div class="projectDescription">${project.description_html || 'No description added.'}</div>
+       <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description)}</div>
 
         <div class="projectActions authOnlyActions" style="display:none;">
           <a class="btn btnNeutral" href="edit_project.html?project=${encodeURIComponent(project.project_number)}">
@@ -1097,6 +1200,26 @@ function renderProjects() {
     `;
   }).join('');
 }
+
+      async function loadDashboardProjects() {
+        try {
+          projectsData = await loadSupabaseProjects();
+
+          renderStats();
+          renderProjects();
+          await updateDashboardAuthState();
+          renderCharts();
+
+          initProjectList();
+          initPresentationMode();
+        } catch (error) {
+          console.error(error);
+          projectsData = [];
+
+          document.getElementById("projectsList").innerHTML =
+            `<div class="empty">Could not load projects from Supabase.</div>`;
+        }
+      }
       let dashboardIsLoggedIn = false;
 
       async function updateDashboardAuthState() {

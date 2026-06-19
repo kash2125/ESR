@@ -1,71 +1,152 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Add Project Sign In</title>
-  <style>
-    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:18px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%); color:#172033; }
-    .card { width:100%; max-width:430px; background:#fff; border-radius:22px; padding:24px; box-shadow:0 18px 50px rgba(27,39,94,.10); border:1px solid rgba(23,32,51,.08); }
-    h1 { margin:0 0 6px; font-size:28px; }
-    p { margin:0 0 16px; color:#5c6680; }
-    label { display:block; margin:12px 0 6px; font-weight:650; }
-    input { width:100%; box-sizing:border-box; padding:12px 14px; border-radius:14px; border:1px solid rgba(23,32,51,.14); font-size:15px; }
-    button, .back { display:inline-flex; align-items:center; justify-content:center; width:100%; min-height:48px; border-radius:14px; border:0; text-decoration:none; font-weight:700; }
-    button { margin-top:16px; background:#275efe; color:#fff; cursor:pointer; }
-    .back { margin-top:10px; background:#eef3ff; color:#1e3a8a; }
-    .flash { display:none; margin:12px 0 0; padding:12px 14px; border-radius:12px; background:#fff4e5; color:#9a4d00; border:1px solid rgba(245,159,0,.25); }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering Login</title>
+
+<style>
+body {
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%);
+  color:#172033;
+}
+
+.card {
+  width:100%;
+  max-width:430px;
+  background:#fff;
+  border-radius:24px;
+  padding:24px;
+  box-shadow:0 18px 50px rgba(27,39,94,.10);
+  border:1px solid rgba(23,32,51,.08);
+}
+
+h1 {
+  margin:0 0 6px;
+  font-size:30px;
+}
+
+p {
+  margin:0 0 18px;
+  color:#5c6680;
+}
+
+label {
+  display:block;
+  margin:8px 0 6px;
+  font-weight:700;
+}
+
+input {
+  width:100%;
+  box-sizing:border-box;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(23,32,51,.14);
+  font-size:15px;
+}
+
+.actions {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:18px;
+}
+
+.actions button,
+.actions a {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:48px;
+  border-radius:14px;
+  text-decoration:none;
+  font-weight:700;
+}
+
+.actions button {
+  border:0;
+  background:#275efe;
+  color:#fff;
+  cursor:pointer;
+}
+
+.actions a {
+  background:#eef3ff;
+  color:#1e3a8a;
+}
+
+.flash {
+  margin-top:14px;
+  padding:12px;
+  border-radius:12px;
+  background:#fff4e5;
+  color:#9a4d00;
+  border:1px solid rgba(245,159,0,.25);
+  display:none;
+}
+</style>
 </head>
+
 <body>
-  <div class="card">
-    <h1>Add Project</h1>
-    <p>Sign in to add or edit projects.</p>
 
-    <div id="pageMessage" class="flash"></div>
+<div class="card">
+  <h1>Engineering Login</h1>
+  <p>Sign in to add, edit, and delete projects.</p>
 
-    <form id="loginForm">
-      <label for="email">Email</label>
-      <input id="email" type="email" autocomplete="email" required autofocus />
+  <form id="loginForm">
+    <label>Email</label>
+    <input id="email" type="email" required>
 
-      <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" required />
+    <label>Password</label>
+    <input id="password" type="password" required>
 
-      <button type="submit">Sign in</button>
-    </form>
+    <div class="actions">
+      <button type="submit">Sign In</button>
+      <a href="index.html">Back to Dashboard</a>
+    </div>
+  </form>
 
-    <a class="back" href="index.html">Back to dashboard</a>
-  </div>
+  <div id="message" class="flash"></div>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseClient.js"></script>
 
-  <script>
-    const form = document.getElementById("loginForm");
-    const message = document.getElementById("pageMessage");
+<script>
+const form = document.getElementById("loginForm");
+const message = document.getElementById("message");
 
-    function showMessage(text) {
-      message.textContent = text;
-      message.style.display = "block";
-    }
+function showMessage(text) {
+  message.style.display = "block";
+  message.textContent = text;
+}
 
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
-      if (error) {
-        showMessage(error.message);
-        return;
-      }
+  if (error) {
+    showMessage(error.message);
+    return;
+  }
 
-      window.location.href = "add_project.html";
-    });
-  </script>
+  window.location.href = "index.html";
+});
+</script>
+
 </body>
 </html>
