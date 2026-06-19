@@ -918,6 +918,19 @@
         return cloned;
       }
 
+      function formatUpdateTimestamp(value) {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value || '').trim();
+        return date.toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+      }
+
       function isCompletedProject(project) {
         return String(project?.project_status || '').trim().toLowerCase() === 'completed';
       }
@@ -946,7 +959,7 @@
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Added</span><div class="presentationMetaValue">${escapeHtml(addedText)}</div></div>
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Status</span><div class="presentationMetaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
             </div>
-            <div class="presentationDescription">${renderProjectUpdates(project.description_html || project.description)}</div>
+            <div class="presentationDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at))}</div>
           </div>`;
       }
 
@@ -1216,10 +1229,11 @@ function renderCharts() {
   makeDoughnut('statusChart', Object.keys(status), Object.values(status), 'No contract-status data yet.');
 }
 
-function renderProjectUpdates(descriptionHtml) {
+function renderProjectUpdates(descriptionHtml, fallbackTimestamp = '') {
   const rawDescription = (descriptionHtml || '').trim();
   const fallbackLatest = 'No latest update yet.';
   const noPrevious = 'No previous updates yet.';
+  const timestampLabel = fallbackTimestamp || '';
 
   function nodesToHtml(nodes) {
     const wrapper = document.createElement('div');
@@ -1261,6 +1275,26 @@ function renderProjectUpdates(descriptionHtml) {
       }
     });
     return template.innerHTML.trim();
+  }
+
+  function entryHasTimestamp(entryHtml) {
+    const template = document.createElement('template');
+    template.innerHTML = entryHtml;
+    const firstElement = template.content.firstElementChild;
+    const firstText = (firstElement?.textContent || '').trim();
+    return /\b\d{1,2}\/\d{1,2}\/\d{4}\b/.test(firstText)
+      || /\b\d{4}-\d{2}-\d{2}\b/.test(firstText);
+  }
+
+  function renderUpdateEntry(entryHtml) {
+    if (!entryHtml || entryHtml === fallbackLatest || entryHtml === noPrevious) return entryHtml;
+    if (!timestampLabel || entryHasTimestamp(entryHtml)) return entryHtml;
+
+    return `
+      <div class="descriptionEntry">
+        <div><strong>${escapeHtml(timestampLabel)}</strong></div>
+        <div>${entryHtml}</div>
+      </div>`;
   }
 
   const template = document.createElement('template');
@@ -1305,7 +1339,7 @@ function renderProjectUpdates(descriptionHtml) {
     entries = [rawDescription];
   }
 
-  const latestUpdate = allPreviousBox ? fallbackLatest : (entries[0] || fallbackLatest);
+  const latestUpdate = allPreviousBox ? fallbackLatest : renderUpdateEntry(entries[0] || fallbackLatest);
   const previousUpdates = allPreviousBox ? entries : entries.slice(1);
 
   return `
@@ -1317,7 +1351,7 @@ function renderProjectUpdates(descriptionHtml) {
       <div class="updateSectionTitle">Previous Updates</div>
       <div class="dashboardScrollBox">
         ${previousUpdates.length
-          ? previousUpdates.map(update => `<div class="projectUpdate">${update}</div>`).join('')
+          ? previousUpdates.map(update => `<div class="projectUpdate">${renderUpdateEntry(update)}</div>`).join('')
           : `<div class="projectUpdate">${noPrevious}</div>`}
       </div>
     </section>`;
@@ -1356,7 +1390,7 @@ function renderProjects() {
           <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(project.project_status || 'Not set')}</div></div>
         </div>
 
-       <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description)}</div>
+       <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at))}</div>
 
         <div class="projectActions authOnlyActions" style="display:none;">
           <a class="btn btnNeutral" href="edit_project.html?project=${encodeURIComponent(project.project_number)}">
@@ -1410,7 +1444,7 @@ function renderCompletedProjects() {
           <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">Completed</div></div>
         </div>
 
-        <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description)}</div>
+        <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at || project.projected_end_date))}</div>
 
         <div class="projectActions authOnlyActions" style="display:none;">
           <button class="btn btnRestore" type="button" onclick="restoreProjectFromDashboard('${escapeHtml(project.project_number)}')">
@@ -1446,7 +1480,7 @@ function exportActiveProjectsPdf() {
         </div>
         <section class="sheetUpdates">
           <div class="sectionLabel">Existing Job Notes / Update History</div>
-          <div class="updatesBox">${renderProjectUpdates(project.description_html || project.description)}</div>
+          <div class="updatesBox">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at))}</div>
         </section>
         <section class="notesBlock">
           <div class="sectionLabel">Discussion Notes</div>
@@ -1560,7 +1594,7 @@ function exportActiveUpdatesPdf() {
         <div><span>Start Date</span><strong>${escapeHtml(project.start_date || "Not set")}</strong></div>
       </div>
       <section class="updates">
-        ${renderProjectUpdates(project.description_html || project.description)}
+        ${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at))}
       </section>
     </article>
   `).join("");
