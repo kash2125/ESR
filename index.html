@@ -246,6 +246,35 @@
         font-size: 16px;
         line-height: 1.6;
       }
+      .projectToolbarTitle {
+        align-items: flex-end;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .projectToolbarTitle > div:first-child { flex: 0 0 auto; }
+      .projectToolbarTitle .sectionActions {
+        flex: 1 0 max-content;
+        margin-left: auto;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+      }
+      .projectToolbarTitle .listTools {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+      }
+      .projectToolbarTitle .filterLabel { white-space: nowrap; }
+      .projectToolbarTitle .filterSelect {
+        width: 170px;
+        min-width: 170px;
+      }
+      .projectToolbarTitle .iconBtn { white-space: nowrap; }
+      .projectToolbarTitle #projectSort,
+      .projectToolbarTitle #completedProjectSort {
+        width: 130px;
+        min-width: 130px;
+      }
 
       .chartRow {
         display: grid;
@@ -450,7 +479,8 @@
       .projectActions { margin-top: 16px; justify-content: flex-end; }
       .inlineForm { margin: 0; }
       .hiddenByFilter { display: none !important; }
-      #filteredEmptyState { margin-top: 14px; display: none; }
+      #filteredEmptyState,
+      #completedFilteredEmptyState { margin-top: 14px; display: none; }
 
       .empty {
         padding: 26px;
@@ -681,7 +711,7 @@
         </section>
 
         <section class="card" id="active-projects">
-          <div class="sectionTitle">
+          <div class="sectionTitle projectToolbarTitle">
             <div>
               <h3>Active Project List</h3>
                           </div>
@@ -694,11 +724,18 @@
               </div>
 
               <div class="listTools">
+                <label class="filterLabel" for="salespersonFilter">Filter by Sales Person</label>
+                <select id="salespersonFilter" class="filterSelect">
+                  <option value="__all__">All Sales People</option>
+                </select>
+              </div>
+
+              <div class="listTools">
                 <label class="filterLabel" for="projectSort">Sort</label>
                 <select id="projectSort" class="filterSelect">
                   <option value="default">Default order</option>
-                  <option value="project_number_asc">Project Number: A to Z / 0 to 9</option>
-                  <option value="project_number_desc">Project Number: Z to A / 9 to 0</option>
+                  <option value="project_number_asc">Ascending</option>
+                  <option value="project_number_desc">Descending</option>
                 </select>
               </div>
 
@@ -709,16 +746,41 @@
           </div>
 
           <div class="projectsList" id="projectsList"></div>
-          <div id="filteredEmptyState" class="empty">No projects match that Project Engineer filter.</div>
+          <div id="filteredEmptyState" class="empty">No projects match the selected filters.</div>
           </section>
 
         <section class="card" id="completed-projects">
-          <div class="sectionTitle">
+          <div class="sectionTitle projectToolbarTitle">
             <div>
               <h3>Completed Projects</h3>
             </div>
+            <div class="sectionActions">
+              <div class="listTools">
+                <label class="filterLabel" for="completedEngineerFilter">Filter by Project Engineer</label>
+                <select id="completedEngineerFilter" class="filterSelect">
+                  <option value="__all__">All Project Engineers</option>
+                </select>
+              </div>
+
+              <div class="listTools">
+                <label class="filterLabel" for="completedSalespersonFilter">Filter by Sales Person</label>
+                <select id="completedSalespersonFilter" class="filterSelect">
+                  <option value="__all__">All Sales People</option>
+                </select>
+              </div>
+
+              <div class="listTools">
+                <label class="filterLabel" for="completedProjectSort">Sort</label>
+                <select id="completedProjectSort" class="filterSelect">
+                  <option value="default">Default order</option>
+                  <option value="project_number_asc">Ascending</option>
+                  <option value="project_number_desc">Descending</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div class="projectsList" id="completedProjectsList"></div>
+          <div id="completedFilteredEmptyState" class="empty">No completed projects match the selected filters.</div>
         </section>
       </div>
     </div>
@@ -800,7 +862,11 @@
       let completedProjectsData = [];
       const STORAGE_KEYS = {
         engineerFilter: 'engineeringDashboard.engineerFilter',
-        projectSort: 'engineeringDashboard.projectSort'
+        salespersonFilter: 'engineeringDashboard.salespersonFilter',
+        projectSort: 'engineeringDashboard.projectSort',
+        completedEngineerFilter: 'engineeringDashboard.completedEngineerFilter',
+        completedSalespersonFilter: 'engineeringDashboard.completedSalespersonFilter',
+        completedProjectSort: 'engineeringDashboard.completedProjectSort'
       };
       let presentationProjects = [...projectsData];
       let presentationIndex = 0;
@@ -965,16 +1031,23 @@
         updatePresentationCounter();
       }
 
-      function restoreState(filterSelect, sortSelect) {
+      function restoreState(filterSelect, salespersonSelect, sortSelect) {
         const urlParams = new URLSearchParams(window.location.search);
         const queryFilter = urlParams.get('engineer');
+        const querySalesperson = urlParams.get('salesperson');
         const querySort = urlParams.get('sort');
         const savedFilter = localStorage.getItem(STORAGE_KEYS.engineerFilter);
+        const savedSalesperson = localStorage.getItem(STORAGE_KEYS.salespersonFilter);
         const savedSort = localStorage.getItem(STORAGE_KEYS.projectSort);
         if (queryFilter) {
           filterSelect.value = queryFilter;
         } else if (savedFilter) {
           filterSelect.value = savedFilter;
+        }
+        if (querySalesperson) {
+          salespersonSelect.value = querySalesperson;
+        } else if (savedSalesperson) {
+          salespersonSelect.value = savedSalesperson;
         }
         if (querySort) {
           sortSelect.value = querySort;
@@ -983,14 +1056,20 @@
         }
       }
 
-      function persistState(filterValue, sortValue) {
+      function persistState(filterValue, salespersonValue, sortValue) {
         localStorage.setItem(STORAGE_KEYS.engineerFilter, filterValue);
+        localStorage.setItem(STORAGE_KEYS.salespersonFilter, salespersonValue);
         localStorage.setItem(STORAGE_KEYS.projectSort, sortValue);
         const params = new URLSearchParams(window.location.search);
         if (filterValue && filterValue !== '__all__') {
           params.set('engineer', filterValue);
         } else {
           params.delete('engineer');
+        }
+        if (salespersonValue && salespersonValue !== '__all__') {
+          params.set('salesperson', salespersonValue);
+        } else {
+          params.delete('salesperson');
         }
         if (sortValue && sortValue !== 'default') {
           params.set('sort', sortValue);
@@ -1000,16 +1079,21 @@
         const nextQuery = params.toString();
         const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash || ''}`;
         window.history.replaceState({}, '', nextUrl);
-        syncProjectActionState(filterValue, sortValue);
+        syncProjectActionState(filterValue, salespersonValue, sortValue);
       }
 
-      function syncProjectActionState(filterValue, sortValue) {
+      function syncProjectActionState(filterValue, salespersonValue, sortValue) {
         document.querySelectorAll('.editProjectLink').forEach(link => {
           const url = new URL(link.getAttribute('href'), window.location.origin);
           if (filterValue && filterValue !== '__all__') {
             url.searchParams.set('engineer', filterValue);
           } else {
             url.searchParams.delete('engineer');
+          }
+          if (salespersonValue && salespersonValue !== '__all__') {
+            url.searchParams.set('salesperson', salespersonValue);
+          } else {
+            url.searchParams.delete('salesperson');
           }
           if (sortValue && sortValue !== 'default') {
             url.searchParams.set('sort', sortValue);
@@ -1028,11 +1112,12 @@
 
       function initProjectList() {
         const filterSelect = document.getElementById('engineerFilter');
+        const salespersonSelect = document.getElementById('salespersonFilter');
         const sortSelect = document.getElementById('projectSort');
         const projectsList = document.getElementById('projectsList');
         const projectCards = Array.from(document.querySelectorAll('.projectItem[data-engineer]'));
         const emptyState = document.getElementById('filteredEmptyState');
-        if (!filterSelect || !sortSelect || !projectsList || !projectCards.length) {
+        if (!filterSelect || !salespersonSelect || !sortSelect || !projectsList || !projectCards.length) {
           setPresentationProjects(projectsData, false);
           return;
         }
@@ -1046,9 +1131,21 @@
           filterSelect.appendChild(option);
         });
 
-        restoreState(filterSelect, sortSelect);
+        salespersonSelect.querySelectorAll('option:not([value="__all__"])').forEach(option => option.remove());
+        const salespeople = [...new Set(projectCards.map(card => (card.dataset.salesperson || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        salespeople.forEach(salesperson => {
+          const option = document.createElement('option');
+          option.value = salesperson;
+          option.textContent = salesperson;
+          salespersonSelect.appendChild(option);
+        });
+
+        restoreState(filterSelect, salespersonSelect, sortSelect);
         if (![...filterSelect.options].some(option => option.value === filterSelect.value)) {
           filterSelect.value = '__all__';
+        }
+        if (![...salespersonSelect.options].some(option => option.value === salespersonSelect.value)) {
+          salespersonSelect.value = '__all__';
         }
         if (!['default', 'project_number_asc', 'project_number_desc'].includes(sortSelect.value)) {
           sortSelect.value = 'default';
@@ -1056,11 +1153,14 @@
 
         function applyFilterAndSort() {
           const selectedEngineer = filterSelect.value;
+          const selectedSalesperson = salespersonSelect.value;
           const sortMode = sortSelect.value;
-          persistState(selectedEngineer, sortMode);
+          persistState(selectedEngineer, selectedSalesperson, sortMode);
 
           const sortedData = sortProjectsArray(projectsData, sortMode).filter(project => {
-            return selectedEngineer === '__all__' || (project.engineer || '').trim() === selectedEngineer;
+            const matchesEngineer = selectedEngineer === '__all__' || (project.engineer || '').trim() === selectedEngineer;
+            const matchesSalesperson = selectedSalesperson === '__all__' || (project.sales_person || '').trim() === selectedSalesperson;
+            return matchesEngineer && matchesSalesperson;
           });
           setPresentationProjects(sortedData, false);
 
@@ -1074,7 +1174,9 @@
 
           let visibleCount = 0;
           sortedCards.forEach(card => {
-            const matches = selectedEngineer === '__all__' || (card.dataset.engineer || '').trim() === selectedEngineer;
+            const matchesEngineer = selectedEngineer === '__all__' || (card.dataset.engineer || '').trim() === selectedEngineer;
+            const matchesSalesperson = selectedSalesperson === '__all__' || (card.dataset.salesperson || '').trim() === selectedSalesperson;
+            const matches = matchesEngineer && matchesSalesperson;
             card.classList.toggle('hiddenByFilter', !matches);
             if (matches) visibleCount += 1;
           });
@@ -1082,8 +1184,73 @@
         }
 
         filterSelect.addEventListener('change', applyFilterAndSort);
+        salespersonSelect.addEventListener('change', applyFilterAndSort);
         sortSelect.addEventListener('change', applyFilterAndSort);
         applyFilterAndSort();
+      }
+
+      function initCompletedProjectList() {
+        const engineerSelect = document.getElementById('completedEngineerFilter');
+        const salespersonSelect = document.getElementById('completedSalespersonFilter');
+        const sortSelect = document.getElementById('completedProjectSort');
+        const projectsList = document.getElementById('completedProjectsList');
+        const projectCards = Array.from(document.querySelectorAll('#completedProjectsList .projectItem[data-engineer]'));
+        const emptyState = document.getElementById('completedFilteredEmptyState');
+        if (!engineerSelect || !salespersonSelect || !sortSelect || !projectsList || !projectCards.length) return;
+
+        const addOptions = (select, values) => {
+          select.querySelectorAll('option:not([value="__all__"])').forEach(option => option.remove());
+          values.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            select.appendChild(option);
+          });
+        };
+
+        addOptions(engineerSelect, [...new Set(projectCards.map(card => (card.dataset.engineer || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b)));
+        addOptions(salespersonSelect, [...new Set(projectCards.map(card => (card.dataset.salesperson || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b)));
+
+        engineerSelect.value = localStorage.getItem(STORAGE_KEYS.completedEngineerFilter) || '__all__';
+        salespersonSelect.value = localStorage.getItem(STORAGE_KEYS.completedSalespersonFilter) || '__all__';
+        sortSelect.value = localStorage.getItem(STORAGE_KEYS.completedProjectSort) || 'default';
+
+        if (![...engineerSelect.options].some(option => option.value === engineerSelect.value)) engineerSelect.value = '__all__';
+        if (![...salespersonSelect.options].some(option => option.value === salespersonSelect.value)) salespersonSelect.value = '__all__';
+        if (!['default', 'project_number_asc', 'project_number_desc'].includes(sortSelect.value)) sortSelect.value = 'default';
+
+        function applyCompletedFilterAndSort() {
+          const selectedEngineer = engineerSelect.value;
+          const selectedSalesperson = salespersonSelect.value;
+          const sortMode = sortSelect.value;
+
+          localStorage.setItem(STORAGE_KEYS.completedEngineerFilter, selectedEngineer);
+          localStorage.setItem(STORAGE_KEYS.completedSalespersonFilter, selectedSalesperson);
+          localStorage.setItem(STORAGE_KEYS.completedProjectSort, sortMode);
+
+          const sortedCards = [...projectCards];
+          if (sortMode === 'project_number_asc') {
+            sortedCards.sort((a, b) => compareProjectNumbers(a.dataset.projectNumber, b.dataset.projectNumber, 'asc'));
+          } else if (sortMode === 'project_number_desc') {
+            sortedCards.sort((a, b) => compareProjectNumbers(a.dataset.projectNumber, b.dataset.projectNumber, 'desc'));
+          }
+          sortedCards.forEach(card => projectsList.appendChild(card));
+
+          let visibleCount = 0;
+          sortedCards.forEach(card => {
+            const matchesEngineer = selectedEngineer === '__all__' || (card.dataset.engineer || '').trim() === selectedEngineer;
+            const matchesSalesperson = selectedSalesperson === '__all__' || (card.dataset.salesperson || '').trim() === selectedSalesperson;
+            const matches = matchesEngineer && matchesSalesperson;
+            card.classList.toggle('hiddenByFilter', !matches);
+            if (matches) visibleCount += 1;
+          });
+          if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        engineerSelect.addEventListener('change', applyCompletedFilterAndSort);
+        salespersonSelect.addEventListener('change', applyCompletedFilterAndSort);
+        sortSelect.addEventListener('change', applyCompletedFilterAndSort);
+        applyCompletedFilterAndSort();
       }
 
       function initPresentationMode() {
@@ -1327,7 +1494,7 @@ function renderProjects() {
     const addedText = project.created_at ? String(project.created_at).slice(0, 10) : 'recently';
 
     return `
-      <article class="projectItem" data-engineer="${escapeHtml(project.engineer || '')}" data-project-number="${escapeHtml(project.project_number || '')}">
+      <article class="projectItem" data-engineer="${escapeHtml(project.engineer || '')}" data-salesperson="${escapeHtml(project.sales_person || '')}" data-project-number="${escapeHtml(project.project_number || '')}">
         <div class="projectTop">
           <div>
             <span class="projectNumber">${escapeHtml(project.project_number || '')}</span>
@@ -1380,7 +1547,7 @@ function renderCompletedProjects() {
     const completedDate = project.projected_end_date || 'Not set';
 
     return `
-      <article class="projectItem">
+      <article class="projectItem" data-engineer="${escapeHtml(project.engineer || '')}" data-salesperson="${escapeHtml(project.sales_person || '')}" data-project-number="${escapeHtml(project.project_number || '')}">
         <div class="projectTop">
           <div>
             <span class="projectNumber">${escapeHtml(project.project_number || '')}</span>
@@ -1444,16 +1611,6 @@ function exportActiveProjectsPdf() {
     const latestUpdate = getPlainTextFromHtml(
       updatesTemplate.content.querySelector(".latestUpdateBox .projectUpdate")?.innerHTML || ""
     );
-    const previousUpdates = Array.from(
-      updatesTemplate.content.querySelectorAll(".previousUpdatesBox .projectUpdate")
-    )
-      .map(update => getPlainTextFromHtml(update.innerHTML))
-      .filter(text => text && text !== "No previous updates yet.")
-      .join(" | ");
-    const addedDate = project.created_at
-      ? new Date(project.created_at).toLocaleDateString("en-US")
-      : "";
-
     return `
       <tr>
         <td>${escapeHtml(project.project_number || "")}</td>
@@ -1461,10 +1618,8 @@ function exportActiveProjectsPdf() {
         <td>${escapeHtml(project.project_status || "No Contract")}</td>
         <td>${escapeHtml(project.sales_person || "")}</td>
         <td>${escapeHtml(project.start_date || "")}</td>
-        <td>${escapeHtml(addedDate)}</td>
         <td>${escapeHtml(project.engineer || "")}</td>
         <td class="updateCell">${escapeHtml(latestUpdate || "No latest update yet.")}</td>
-        <td class="updateCell">${escapeHtml(previousUpdates || "No previous updates yet.")}</td>
       </tr>
     `;
   }).join("");
@@ -1542,15 +1697,13 @@ function exportActiveProjectsPdf() {
       line-height: 1.35;
     }
 
-    th:nth-child(1), td:nth-child(1) { width: 5%; }
-    th:nth-child(2), td:nth-child(2) { width: 15%; }
-    th:nth-child(3), td:nth-child(3) { width: 7%; }
-    th:nth-child(4), td:nth-child(4) { width: 8%; }
-    th:nth-child(5), td:nth-child(5) { width: 7%; }
-    th:nth-child(6), td:nth-child(6) { width: 7%; }
-    th:nth-child(7), td:nth-child(7) { width: 7%; }
-    th:nth-child(8), td:nth-child(8) { width: 22%; }
-    th:nth-child(9), td:nth-child(9) { width: 22%; }
+    th:nth-child(1), td:nth-child(1) { width: 6%; }
+    th:nth-child(2), td:nth-child(2) { width: 18%; }
+    th:nth-child(3), td:nth-child(3) { width: 9%; }
+    th:nth-child(4), td:nth-child(4) { width: 10%; }
+    th:nth-child(5), td:nth-child(5) { width: 9%; }
+    th:nth-child(6), td:nth-child(6) { width: 10%; }
+    th:nth-child(7), td:nth-child(7) { width: 38%; }
 
     @media print {
       .noPrint {
@@ -1579,10 +1732,8 @@ function exportActiveProjectsPdf() {
         <th>Contract<br>Status</th>
         <th>Sales Person</th>
         <th>Start<br>Date</th>
-        <th>Added</th>
         <th>Engineer</th>
         <th>Latest Update</th>
-        <th>Previous Updates</th>
       </tr>
     </thead>
     <tbody>
@@ -1690,6 +1841,7 @@ function getPlainTextFromHtml(html) {
           renderCharts();
 
           initProjectList();
+          initCompletedProjectList();
           initPresentationMode();
           initExportActiveProjectsPdf();
           initManualEmailUpdates();
