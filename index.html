@@ -874,10 +874,24 @@
       function makeDoughnut(canvasId, labels, values, emptyText) {
         const ctx = document.getElementById(canvasId);
         if (!ctx) return;
+        const chartWrap = ctx.parentElement;
+        const existingChart = Chart.getChart(ctx);
+        if (existingChart) existingChart.destroy();
+
         if (!labels.length || !values.some(v => Number(v) > 0)) {
-          ctx.parentElement.innerHTML = `<div class="empty">${emptyText}</div>`;
+          ctx.style.display = 'none';
+          let emptyState = chartWrap.querySelector('.chartEmptyState');
+          if (!emptyState) {
+            emptyState = document.createElement('div');
+            emptyState.className = 'empty chartEmptyState';
+            chartWrap.appendChild(emptyState);
+          }
+          emptyState.textContent = emptyText;
           return;
         }
+
+        ctx.style.display = 'block';
+        chartWrap.querySelector('.chartEmptyState')?.remove();
         new Chart(ctx, {
           type: 'doughnut',
           data: { labels, datasets: [{ data: values, backgroundColor: palette, borderWidth: 0, hoverOffset: 10 }] },
@@ -1115,8 +1129,11 @@
         const salespersonSelect = document.getElementById('salespersonFilter');
         const sortSelect = document.getElementById('projectSort');
         const projectsList = document.getElementById('projectsList');
-        const projectCards = Array.from(document.querySelectorAll('.projectItem[data-engineer]'));
+        const projectCards = Array.from(document.querySelectorAll('#projectsList .projectItem[data-engineer]'));
         const emptyState = document.getElementById('filteredEmptyState');
+        if (filterSelect) filterSelect.onchange = null;
+        if (salespersonSelect) salespersonSelect.onchange = null;
+        if (sortSelect) sortSelect.onchange = null;
         if (!filterSelect || !salespersonSelect || !sortSelect || !projectsList || !projectCards.length) {
           setPresentationProjects(projectsData, false);
           return;
@@ -1183,9 +1200,9 @@
           if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
         }
 
-        filterSelect.addEventListener('change', applyFilterAndSort);
-        salespersonSelect.addEventListener('change', applyFilterAndSort);
-        sortSelect.addEventListener('change', applyFilterAndSort);
+        filterSelect.onchange = applyFilterAndSort;
+        salespersonSelect.onchange = applyFilterAndSort;
+        sortSelect.onchange = applyFilterAndSort;
         applyFilterAndSort();
       }
 
@@ -1196,6 +1213,9 @@
         const projectsList = document.getElementById('completedProjectsList');
         const projectCards = Array.from(document.querySelectorAll('#completedProjectsList .projectItem[data-engineer]'));
         const emptyState = document.getElementById('completedFilteredEmptyState');
+        if (engineerSelect) engineerSelect.onchange = null;
+        if (salespersonSelect) salespersonSelect.onchange = null;
+        if (sortSelect) sortSelect.onchange = null;
         if (!engineerSelect || !salespersonSelect || !sortSelect || !projectsList || !projectCards.length) return;
 
         const addOptions = (select, values) => {
@@ -1247,9 +1267,9 @@
           if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
         }
 
-        engineerSelect.addEventListener('change', applyCompletedFilterAndSort);
-        salespersonSelect.addEventListener('change', applyCompletedFilterAndSort);
-        sortSelect.addEventListener('change', applyCompletedFilterAndSort);
+        engineerSelect.onchange = applyCompletedFilterAndSort;
+        salespersonSelect.onchange = applyCompletedFilterAndSort;
+        sortSelect.onchange = applyCompletedFilterAndSort;
         applyCompletedFilterAndSort();
       }
 
