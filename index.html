@@ -301,22 +301,6 @@
         line-height: 1.55;
       }
 
-      .updatesFeedItem {
-        padding: 14px 16px;
-        border-radius: 18px;
-        border: 1px solid rgba(39,94,254,0.10);
-        background: linear-gradient(180deg, #ffffff, #f7faff);
-      }
-
-      .updatesFeedMeta {
-        display: block;
-        color: var(--muted);
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
-
       .updatesFeedProject {
         margin-top: 8px;
         color: var(--text);
@@ -325,16 +309,6 @@
         line-height: 1.25;
       }
 
-      .updatesFeedText {
-        margin-top: 8px;
-        color: #4e5d77;
-        font-size: 14px;
-        line-height: 1.45;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
       .chartCard {
         display: flex;
         flex-direction: column;
@@ -1024,7 +998,7 @@
           data: { labels, datasets: [{ data: values, backgroundColor: palette, borderWidth: 0, hoverOffset: 10 }] },
           options: {
             maintainAspectRatio: false,
-            cutout: '66%',
+            cutout: '60%',
             plugins: {
               legend: {
                 position: 'bottom',
