@@ -140,7 +140,7 @@ function asPreviousUpdatesOnly(html) {
 
 function normalizeProject(project) {
   const description = asPreviousUpdatesOnly(project.description_html || project.description || "No description added.");
-  const projectedEndDate = cleanString(project.projected_end_date);
+  const completedDate = cleanString(project.completed_date);
 
   return {
     project_number: cleanString(project.project_number),
@@ -149,7 +149,7 @@ function normalizeProject(project) {
     project_status: cleanString(project.project_status) || "No Contract",
     sales_person: cleanString(project.sales_person) || "Unassigned",
     start_date: cleanString(project.start_date),
-    projected_end_date: projectedEndDate || null,
+    completed_date: completedDate || null,
     description,
     description_color: cleanString(project.description_color) || "#000000",
     description_html: description,

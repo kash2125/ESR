@@ -106,7 +106,7 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
   const projectStatus = String(formValues.project_status || "").trim();
   const salesPerson = String(formValues.sales_person || "").trim();
   const startDate = String(formValues.start_date || "").trim();
-  const projectedEndDate = String(formValues.projected_end_date || "").trim();
+  const completedDate = String(formValues.completed_date || "").trim();
   const description = sanitizeDescriptionHtml(formValues.description || "");
   const descriptionColor = normalizeDescriptionColor(formValues.description_color || DEFAULT_DESCRIPTION_COLOR);
 
@@ -130,7 +130,7 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
     return { project: null, error: "Please select a valid Sales Person from the dropdown." };
   }
 
-  if (projectedEndDate && new Date(projectedEndDate) < new Date(startDate)) {
+  if (completedDate && new Date(completedDate) < new Date(startDate)) {
     return { project: null, error: "Completed Date cannot be earlier than Start Date." };
   }
 
@@ -142,7 +142,7 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
       project_status: normalizeProjectStatus(projectStatus),
       sales_person: normalizeSalesPerson(salesPerson),
       start_date: startDate,
-      projected_end_date: projectedEndDate || null,
+      completed_date: completedDate || null,
       description,
       description_color: descriptionColor,
       description_html: description || "No description added.",

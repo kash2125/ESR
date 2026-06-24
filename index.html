@@ -1546,7 +1546,7 @@ function renderProjects() {
             Completed
           </button>
 
-          <button class="btn btnDanger" type="button" onclick="deleteProjectFromDashboard('${escapeHtml(project.project_number)}')">
+          <button class="btn btnDanger deleteOnlyActions" type="button" onclick="deleteProjectFromDashboard('${escapeHtml(project.project_number)}')" style="display:none;">
             Delete
           </button>
         </div>
@@ -1565,7 +1565,7 @@ function renderCompletedProjects() {
   }
 
   list.innerHTML = completedProjectsData.map(project => {
-    const completedDate = project.projected_end_date || 'Not set';
+    const completedDate = project.completed_date || 'Not set';
 
     return `
       <article class="projectItem" data-engineer="${escapeHtml(project.engineer || '')}" data-salesperson="${escapeHtml(project.sales_person || '')}" data-project-number="${escapeHtml(project.project_number || '')}">
@@ -1589,7 +1589,7 @@ function renderCompletedProjects() {
           <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">Completed</div></div>
         </div>
 
-        <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at || project.projected_end_date))}</div>
+        <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at || project.completed_date))}</div>
 
         <div class="projectActions authOnlyActions" style="display:none;">
           <button class="btn btnRestore" type="button" onclick="restoreProjectFromDashboard('${escapeHtml(project.project_number)}')">
@@ -1853,7 +1853,7 @@ function getPlainTextFromHtml(html) {
           projectsData = allProjectsData.filter(project => !isCompletedProject(project));
           completedProjectsData = allProjectsData
             .filter(isCompletedProject)
-            .sort((a, b) => String(b.projected_end_date || '').localeCompare(String(a.projected_end_date || '')));
+            .sort((a, b) => String(b.completed_date || '').localeCompare(String(a.completed_date || '')));
 
           renderStats();
           renderProjects();
@@ -1879,19 +1879,30 @@ function getPlainTextFromHtml(html) {
         }
       }
       let dashboardIsLoggedIn = false;
+      let dashboardCanDelete = false;
+      const DASHBOARD_DELETE_EMAIL = "kayleem@nswash.com";
 
       async function updateDashboardAuthState() {
         const { data } = await supabaseClient.auth.getSession();
         dashboardIsLoggedIn = !!data.session;
+        dashboardCanDelete = String(data.session?.user?.email || "").trim().toLowerCase() === DASHBOARD_DELETE_EMAIL;
 
         document.querySelectorAll(".authOnlyActions").forEach(el => {
           el.style.display = dashboardIsLoggedIn ? "flex" : "none";
+        });
+
+        document.querySelectorAll(".deleteOnlyActions").forEach(el => {
+          el.style.display = dashboardCanDelete ? "inline-flex" : "none";
         });
       }
 
       async function deleteProjectFromDashboard(projectNumber) {
         if (!dashboardIsLoggedIn) {
           window.location.href = "login.html";
+          return;
+        }
+        if (!dashboardCanDelete) {
+          alert("Only kayleem@nswash.com can delete projects.");
           return;
         }
 

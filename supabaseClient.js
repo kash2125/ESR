@@ -82,7 +82,7 @@ async function completeProjectByNumber(projectNumber, completedDate) {
     .from(PROJECTS_TABLE)
     .update({
       project_status: "Completed",
-      projected_end_date: completedDate
+      completed_date: completedDate
     })
     .ilike("project_number", projectNumber)
     .select()
@@ -97,7 +97,7 @@ async function restoreProjectByNumber(projectNumber) {
     .from(PROJECTS_TABLE)
     .update({
       project_status: "No Contract",
-      projected_end_date: null
+      completed_date: null
     })
     .ilike("project_number", projectNumber)
     .select()

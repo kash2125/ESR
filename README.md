@@ -34,17 +34,20 @@ The app expects fields like:
 - `project_status`
 - `sales_person`
 - `start_date`
-- `projected_end_date`
+- `completed_date`
 - `description`
 - `description_html`
 - `description_color`
 - `created_at`
 
-`projected_end_date` is now used as the completed date for completed projects. It should allow `NULL` in Supabase:
+Completed projects use `completed_date`. Run this once in the Supabase SQL editor if your table does not have it yet:
 
 ```sql
 alter table public.projects
-alter column projected_end_date drop not null;
+add column if not exists completed_date date;
+
+alter table public.projects
+alter column completed_date drop not null;
 ```
 
 ## Project Updates

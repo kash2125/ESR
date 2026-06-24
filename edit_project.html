@@ -63,6 +63,72 @@
         color: #5c6680;
         line-height: 1.6;
       }
+      .historyEditItem {
+        padding: 14px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid rgba(23,32,51,.10);
+      }
+      .historyEditItem:last-child { margin-bottom: 0; }
+      .historyEditLabel {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: #5c6680;
+      }
+      .historyEditButton {
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(39,94,254,.18);
+        background: #eef3ff;
+        color: #1e3a8a;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .historyLockedMeta {
+        margin-bottom: 10px;
+        color: #172033;
+        line-height: 1.5;
+      }
+      .historyLockedMeta strong { font-weight: 800; }
+      .historyEditable {
+        color: #172033;
+        line-height: 1.6;
+        outline: none;
+      }
+      .historyEditable[contenteditable="false"] {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: default;
+      }
+      .historyEditable[contenteditable="true"] {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        cursor: text;
+      }
+      .historyEditable:focus {
+        border-color: transparent;
+        box-shadow: none;
+      }
+      .historyEditStamp {
+        margin-top: 8px;
+        color: #6f7890;
+        font-size: 13px;
+        font-style: italic;
+      }
       @media (max-width:680px) { .grid { grid-template-columns:1fr; } }
     </style>
   </head>
@@ -405,6 +471,10 @@
         const cleanNew = String(newHtml || "").trim();
         const cleanOld = String(oldHtml || "").trim();
 
+        if (!textContentFromHtml(cleanNew)) {
+          return cleanOld;
+        }
+
         const entry = `
           <div class="descriptionEntry">
             <div><strong>${getTimestampLabel()}</strong></div>
@@ -413,6 +483,232 @@
         `;
 
         return cleanOld ? `${entry}<hr>${cleanOld}` : entry;
+      }
+
+      function normalizeHistoryHtml(value) {
+        const temp = document.createElement("template");
+        temp.innerHTML = String(value || "").trim();
+        temp.content.querySelectorAll(".updateSectionTitle").forEach(el => el.remove());
+        return temp.innerHTML.replace(/\s+/g, " ").trim();
+      }
+
+      function splitDescriptionHistory(descriptionHtml) {
+        const template = document.createElement("template");
+        template.innerHTML = String(descriptionHtml || "").trim();
+
+        const allPreviousBox = template.content.querySelector("[data-all-previous-updates='true']");
+        if (allPreviousBox) {
+          return Array.from(allPreviousBox.querySelectorAll(".descriptionEntry, .projectUpdate"))
+            .map(entry => entry.innerHTML.trim())
+            .filter(Boolean);
+        }
+
+        const latestUpdateBox = template.content.querySelector(".latestUpdateBox");
+        if (latestUpdateBox) {
+          const entries = [];
+          const latestContent = latestUpdateBox.querySelector(".latestUpdateContent, .projectUpdate");
+          if (latestContent?.innerHTML.trim()) entries.push(latestContent.innerHTML.trim());
+
+          const previousRoot = template.content.querySelector(".previousUpdatesBox") || template.content;
+          entries.push(
+            ...Array.from(previousRoot.querySelectorAll(".descriptionEntry, .projectUpdate"))
+              .filter(entry => !latestUpdateBox.contains(entry))
+              .map(entry => entry.innerHTML.trim())
+              .filter(Boolean)
+          );
+          return entries;
+        }
+
+        const explicitEntries = Array.from(template.content.querySelectorAll(".descriptionEntry, .projectUpdate"));
+        if (explicitEntries.length) {
+          return explicitEntries.map(entry => entry.innerHTML.trim()).filter(Boolean);
+        }
+
+        const entries = [];
+        let current = [];
+        Array.from(template.content.childNodes).forEach(node => {
+          if (node.nodeType === Node.ELEMENT_NODE && node.tagName === "HR") {
+            const html = current.map(item => item.outerHTML || item.textContent || "").join("").trim();
+            if (html) entries.push(html);
+            current = [];
+          } else {
+            current.push(node.cloneNode(true));
+          }
+        });
+
+        const finalHtml = current.map(item => item.outerHTML || item.textContent || "").join("").trim();
+        if (finalHtml) entries.push(finalHtml);
+
+        return entries;
+      }
+
+      function parseHistoryEntry(entryHtml) {
+        const template = document.createElement("template");
+        template.innerHTML = String(entryHtml || "").trim();
+        const timestampPattern = /^\d{2}\/\d{2}\/\d{4},\s+\d{1,2}:\d{2}\s+[AP]M$/i;
+        const toHtml = nodes => Array.from(nodes)
+          .map(node => node.outerHTML || node.textContent || "")
+          .join("")
+          .trim();
+        const getLeadingContentNode = parent => Array.from(parent.childNodes)
+          .find(node => node.nodeType !== Node.TEXT_NODE || node.textContent.trim());
+        const removeLeadingBreaks = parent => {
+          while (
+            parent.firstChild &&
+            (
+              (parent.firstChild.nodeType === Node.TEXT_NODE && !parent.firstChild.textContent.trim()) ||
+              (parent.firstChild.nodeType === Node.ELEMENT_NODE && parent.firstChild.tagName === "BR")
+            )
+          ) {
+            parent.firstChild.remove();
+          }
+        };
+        const pullTimestampFromParent = parent => {
+          const firstNode = getLeadingContentNode(parent);
+          if (!firstNode || firstNode.nodeType !== Node.ELEMENT_NODE) return "";
+
+          const timestampText = firstNode.textContent.replace(/\s+/g, " ").trim();
+          const isTimestampNode =
+            timestampPattern.test(timestampText) &&
+            (
+              firstNode.tagName === "STRONG" ||
+              firstNode.tagName === "B" ||
+              firstNode.querySelector("strong, b")
+            );
+
+          if (!isTimestampNode) return "";
+
+          firstNode.remove();
+          removeLeadingBreaks(parent);
+          return `<div><strong>${timestampText}</strong></div>`;
+        };
+
+        const editStamps = Array.from(template.content.querySelectorAll(".historyEditStamp"));
+        const editStampHtml = editStamps.map(stamp => stamp.outerHTML).join("");
+        editStamps.forEach(stamp => stamp.remove());
+
+        let timestampHtml = "";
+        const firstElement = Array.from(template.content.children)[0];
+        const firstElementText = (firstElement?.textContent || "").replace(/\s+/g, " ").trim();
+        const hasTimestampText = timestampPattern.test(firstElementText);
+        if (firstElement?.querySelector("strong") && hasTimestampText) {
+          timestampHtml = firstElement.outerHTML;
+          firstElement.remove();
+        }
+
+        let bodyHtml = template.innerHTML.trim();
+        const bodyTemplate = document.createElement("template");
+        bodyTemplate.innerHTML = bodyHtml;
+        const bodyChildren = Array.from(bodyTemplate.content.children);
+        if (bodyChildren.length === 1 && bodyChildren[0].tagName === "DIV") {
+          if (!timestampHtml) {
+            timestampHtml = pullTimestampFromParent(bodyChildren[0]);
+          }
+          bodyHtml = bodyChildren[0].innerHTML.trim();
+        } else {
+          if (!timestampHtml) {
+            timestampHtml = pullTimestampFromParent(bodyTemplate.content);
+          }
+          bodyHtml = toHtml(bodyTemplate.content.childNodes);
+        }
+
+        return {
+          timestampHtml,
+          bodyHtml,
+          editStampHtml
+        };
+      }
+
+      function renderEditableHistory(descriptionHtml) {
+        const historyContainer = document.getElementById("historyContainer");
+        if (!historyContainer) return;
+
+        const entries = splitDescriptionHistory(descriptionHtml);
+
+        if (!entries.length) {
+          historyContainer.innerHTML = "<div class='historyText'>No previous updates yet.</div>";
+          return;
+        }
+
+        historyContainer.innerHTML = entries.map((entry, index) => {
+          const parsedEntry = parseHistoryEntry(entry);
+          const timestampHtml = parsedEntry.timestampHtml;
+          const originalBody = normalizeHistoryHtml(parsedEntry.bodyHtml);
+
+          return `
+          <div class="historyEditItem">
+            <div class="historyEditLabel">
+              <span>Previous Update ${index + 1}</span>
+              <button class="historyEditButton" type="button">Edit</button>
+            </div>
+            <div class="historyLockedMeta" data-timestamp-html="${encodeURIComponent(parsedEntry.timestampHtml)}" data-edit-stamps-html="${encodeURIComponent(parsedEntry.editStampHtml)}" ${timestampHtml || parsedEntry.editStampHtml ? "" : "hidden"}>
+              ${timestampHtml}${parsedEntry.editStampHtml}
+            </div>
+            <div class="historyEditable" contenteditable="false" data-original-body="${encodeURIComponent(originalBody)}">${parsedEntry.bodyHtml}</div>
+          </div>
+        `;
+        }).join("");
+      }
+
+      function collectEditedHistoryHtml() {
+        const historyContainer = document.getElementById("historyContainer");
+        if (!historyContainer) return "";
+
+        return Array.from(historyContainer.querySelectorAll(".historyEditItem"))
+          .map(item => {
+            const entry = item.querySelector(".historyEditable");
+            const meta = item.querySelector(".historyLockedMeta");
+            if (!entry || !meta) return "";
+
+            const original = decodeURIComponent(entry.dataset.originalBody || "");
+            const current = entry.innerHTML.trim();
+            const timestampHtml = decodeURIComponent(meta.dataset.timestampHtml || "");
+            let editStampHtml = decodeURIComponent(meta.dataset.editStampsHtml || "");
+
+            if (!current) return "";
+
+            if (normalizeHistoryHtml(current) !== original) {
+              editStampHtml += `<div class="historyEditStamp">Edited ${getTimestampLabel()}</div>`;
+            }
+
+            return `${timestampHtml}<div>${current}</div>${editStampHtml}`;
+          })
+          .filter(Boolean)
+          .join("<hr>");
+      }
+
+      function initHistoryEditButtons() {
+        const historyContainer = document.getElementById("historyContainer");
+        if (!historyContainer) return;
+
+        historyContainer.addEventListener("click", event => {
+          const button = event.target.closest(".historyEditButton");
+          if (!button) return;
+
+          const item = button.closest(".historyEditItem");
+          const editable = item?.querySelector(".historyEditable");
+          if (!editable) return;
+
+          const isEditing = editable.getAttribute("contenteditable") === "true";
+          editable.setAttribute("contenteditable", isEditing ? "false" : "true");
+          item.classList.toggle("isEditing", !isEditing);
+          button.textContent = isEditing ? "Edit" : "Done";
+          button.setAttribute("aria-pressed", String(!isEditing));
+
+          if (!isEditing) {
+            editable.focus();
+            const range = document.createRange();
+            range.selectNodeContents(editable);
+            range.collapse(false);
+            const selection = window.getSelection();
+            if (selection) {
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          } else {
+            editable.blur();
+          }
+        });
       }
 
       function rememberSelectionFromEvent() {
@@ -462,6 +758,8 @@
           rememberSelection();
         }
       });
+
+      initHistoryEditButtons();
       
       async function loadProjectForEdit() {
         if (!originalProjectNumber) {
@@ -486,10 +784,7 @@
 
         existingDescriptionHtml = project.description || project.description_html || "";
 
-        const historyContainer = document.getElementById("historyContainer");
-        if (historyContainer) {
-          historyContainer.innerHTML = existingDescriptionHtml || "<div class='historyText'>No previous updates yet.</div>";
-        }
+        renderEditableHistory(existingDescriptionHtml);
 
         editor.innerHTML = "";
         hiddenDescription.value = "";
@@ -503,7 +798,7 @@
         
         const finalDescriptionHtml = buildTimestampedDescription(
           hiddenDescription.value,
-          typeof existingDescriptionHtml !== "undefined" ? existingDescriptionHtml : ""
+          collectEditedHistoryHtml()
         );
 
         const formValues = {
@@ -513,7 +808,7 @@
           project_status: document.getElementById("project_status").value,
           sales_person: document.getElementById("sales_person").value,
           start_date: document.getElementById("start_date").value,
-          projected_end_date: existingProject?.project_status === "Completed" ? (existingProject.projected_end_date || "") : "",
+          completed_date: existingProject?.project_status === "Completed" ? (existingProject.completed_date || "") : "",
           description: finalDescriptionHtml,
           description_color: descriptionColorInput.value
         };
