@@ -96,7 +96,7 @@ async function restoreProjectByNumber(projectNumber) {
   const { data, error } = await supabaseClient
     .from(PROJECTS_TABLE)
     .update({
-      project_status: "No Contract",
+      project_status: "Request",
       completed_date: null
     })
     .ilike("project_number", projectNumber)

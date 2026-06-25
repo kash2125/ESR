@@ -9,7 +9,7 @@ const SALES_PERSON_OPTIONS = [
   "Francis Tenggardjaja"
 ];
 
-const PROJECT_STATUS_OPTIONS = ["Contract", "No Contract", "Completed"];
+const PROJECT_STATUS_OPTIONS = ["Contract", "Request", "Completed"];
 
 const DEFAULT_DESCRIPTION_COLOR = "#000000";
 const ALLOWED_DESCRIPTION_COLORS = ["#000000", "#c62828"];
@@ -17,9 +17,9 @@ const ALLOWED_DESCRIPTION_COLORS = ["#000000", "#c62828"];
 function normalizeProjectStatus(value) {
   const raw = String(value || "").trim().toLowerCase();
   if (raw === "contract") return "Contract";
-  if (raw === "no contract") return "No Contract";
+  if (raw === "no contract" || raw === "request") return "Request";
   if (raw === "completed") return "Completed";
-  return "No Contract";
+  return "Request";
 }
 
 function normalizeSalesPerson(value) {
@@ -123,7 +123,7 @@ function prepareProjectPayload(formValues, existingCreatedAt = null) {
   }
 
   if (!isValidProjectStatusChoice(projectStatus)) {
-    return { project: null, error: "Please select a valid Project Status from the dropdown." };
+    return { project: null, error: "Please select a valid Request Type from the dropdown." };
   }
 
   if (!isValidSalesPersonChoice(salesPerson)) {
