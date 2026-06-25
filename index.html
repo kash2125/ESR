@@ -2075,27 +2075,38 @@ function renderCompletedProjects() {
 
   list.innerHTML = completedProjectsData.map(project => {
     const completedDate = project.completed_date || 'Not set';
+    const statusLabel =
+      project.contract_status ||
+      project.original_status ||
+      project.previous_status ||
+      'No Contract';
+
+    const statusClass = statusLabel === 'Contract'
+      ? 'badgeContract'
+      : 'badgeNoContract';
 
     return `
       <article class="projectItem" data-engineer="${escapeHtml(project.engineer || '')}" data-salesperson="${escapeHtml(project.sales_person || '')}" data-project-number="${escapeHtml(project.project_number || '')}">
         <div class="projectTop">
-          <div>
-            <span class="projectNumber">${escapeHtml(project.project_number || '')}</span>
-            <div class="projectName">${escapeHtml(project.project_name || '')}</div>
-          </div>
-          <div class="projectMeta">Completed: <strong>${escapeHtml(completedDate)}</strong></div>
+        <div>
+          <span class="projectNumber">${escapeHtml(project.project_number || '')}</span>
+          <div class="projectName">${escapeHtml(project.project_name || '')}</div>
         </div>
+        <div class="projectTopMeta">
+          <div class="projectMeta">Project Engineer: <strong>${escapeHtml(project.engineer || 'Not set')}</strong></div>
+          <div class="projectLastEdited">Completed: <strong>${escapeHtml(completedDate)}</strong></div>
+        </div>
+      </div>
 
         <div class="badgeRow">
-          <span class="badge badgeContract">Completed</span>
-          <span class="badge badgeSales">Project Engineer: ${escapeHtml(project.engineer || 'Not set')}</span>
+          <span class="badge ${statusClass}">${escapeHtml(statusLabel)}</span>
           <span class="badge badgeSales">Sales Person: ${escapeHtml(project.sales_person || 'Unassigned')}</span>
         </div>
 
         <div class="metaGrid">
           <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
           <div class="metaItem"><span class="metaLabel">Completed Date</span><div class="metaValue">${escapeHtml(completedDate)}</div></div>
-          <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">Completed</div></div>
+          <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(statusLabel)}</div></div>
         </div>
 
         <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at || project.completed_date))}</div>
