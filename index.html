@@ -463,6 +463,9 @@
         gap: 2px;
         text-align: right;
       }
+      .presentationTopMeta {
+        max-width: 320px;
+      }
       .projectMeta,
       .projectLastEdited,
       .projectDescription,
@@ -701,11 +704,13 @@
       }
       .presentationStage { will-change: transform, opacity; }
       .presentationProjectHeader {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
         align-items: flex-start;
-        gap: 16px;
-        flex-wrap: wrap;
+        gap: 24px;
+      }
+      .presentationProjectHeader > div:first-child {
+        min-width: 0;
       }
       .presentationProjectName {
         margin: 16px 0 10px;
@@ -713,6 +718,7 @@
         line-height: 0.98;
         letter-spacing: -0.055em;
         font-weight: 800;
+        overflow-wrap: anywhere;
       }
       .presentationDescription { font-size: 22px; min-height: 180px; }
 
@@ -726,6 +732,7 @@
         .hero h1 { white-space: normal; }
         .projectTopMeta,
         .presentationTopMeta { text-align: left; }
+        .presentationProjectHeader { grid-template-columns: 1fr; }
         .stats,
         .chartRow,
         .metaGrid,
