@@ -818,6 +818,34 @@
         overflow-wrap: anywhere;
       }
       .presentationDescription { font-size: 22px; min-height: 180px; }
+      .collapseBtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--text);
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .collapseBtn::before {
+        content: "▾";
+        transition: transform .18s ease;
+      }
+
+      .collapseBtn.isClosed::before {
+        transform: rotate(-90deg);
+      }
+
+      .collapsibleContent {
+        margin-top: 18px;
+      }
+
+      .collapsibleContent.isCollapsed {
+        display: none;
+      }
 
       @media (max-width: 1200px) {
         .stats,
@@ -963,8 +991,12 @@
         <section class="card" id="active-projects">
           <div class="sectionTitle projectToolbarTitle">
             <div>
-              <h3>Active Project List</h3>
-                          </div>
+              <h3>
+                <button class="collapseBtn" type="button" data-collapse-target="activeProjectsContent">
+                  Active Project List
+                </button>
+              </h3>
+            </div>
             <div class="sectionActions">
               <div class="listTools">
                 <label class="filterLabel" for="engineerFilter">Filter by Engineer</label>
@@ -992,23 +1024,31 @@
             <button class="iconBtn" id="openPresentationModeSection" type="button">Presentation Mode</button>
             <button class="iconBtn" id="emailActiveProjectUpdates" type="button">Email Updates</button>
             <button class="iconBtn" id="exportActiveProjectsPdf" type="button">Export Active PDF</button>
-          </div>
-          </div>
+            </div>
+            </div>
+            </summary>
 
-          <div class="projectsList" id="projectsList"></div>
-          <div id="filteredEmptyState" class="empty">No projects match the selected filters.</div>
+            <div class="collapsibleContent" id="activeProjectsContent">
+
+            <div class="projectsList" id="projectsList"></div>
+            <div id="filteredEmptyState" class="empty">No projects match the selected filters.</div>
+            </div>
           </section>
 
         <section class="card" id="completed-projects">
           <div class="sectionTitle projectToolbarTitle">
             <div>
-              <h3>Completed Projects</h3>
+              <h3>
+                <button class="collapseBtn isClosed" type="button" data-collapse-target="completedProjectsContent">
+                  Completed Projects
+                </button>
+              </h3>
             </div>
             <div class="sectionActions">
               <div class="listTools">
                 <label class="filterLabel" for="completedEngineerFilter">Filter by Project Engineer</label>
                 <select id="completedEngineerFilter" class="filterSelect">
-                  <option value="__all__">All Project Engineers</option>
+                  <option value="__all__">All Engineers</option>
                 </select>
               </div>
 
@@ -1028,9 +1068,14 @@
                 </select>
               </div>
             </div>
-          </div>
-          <div class="projectsList" id="completedProjectsList"></div>
+            </div>
+            </summary>
+
+            <div class="collapsibleContent isCollapsed" id="completedProjectsContent">
+
+            <div class="projectsList" id="completedProjectsList"></div>
           <div id="completedFilteredEmptyState" class="empty">No completed projects match the selected filters.</div>
+          </div>
         </section>
       </div>
     </div>
@@ -1142,6 +1187,15 @@
       document.addEventListener("DOMContentLoaded", () => {
         initThemeToggle();
         updateAuthButtons();
+        document.querySelectorAll(".collapseBtn").forEach(button => {
+          button.addEventListener("click", () => {
+            const target = document.getElementById(button.dataset.collapseTarget);
+            if (!target) return;
+
+            target.classList.toggle("isCollapsed");
+            button.classList.toggle("isClosed", target.classList.contains("isCollapsed"));
+          });
+        });
 
         const logoutBtn = document.getElementById("logoutBtn");
         if (logoutBtn) {
