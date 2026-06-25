@@ -6,6 +6,49 @@
 <title>Engineering Login</title>
 
 <style>
+
+:root {
+  --bg: linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%);
+  --card: #ffffff;
+  --text: #172033;
+  --muted: #5c6680;
+  --border: rgba(23,32,51,.08);
+  --input-border: rgba(23,32,51,.14);
+
+  --primary: #275efe;
+  --primary-hover: #1f4fe0;
+
+  --secondary-bg: #eef3ff;
+  --secondary-text: #1e3a8a;
+
+  --flash-bg: #fff4e5;
+  --flash-text: #9a4d00;
+  --flash-border: rgba(245,159,0,.25);
+
+  --shadow: 0 18px 50px rgba(27,39,94,.10);
+}
+
+:root[data-theme="dark"] {
+  --bg: linear-gradient(180deg,#0f1726 0%,#101828 100%);
+  --card: #151f32;
+  --text: #edf4ff;
+  --muted: #aab7cf;
+  --border: rgba(255,255,255,.08);
+  --input-border: rgba(255,255,255,.12);
+
+  --primary: #4f7cff;
+  --primary-hover: #6a8eff;
+
+  --secondary-bg: #1c2940;
+  --secondary-text: #c7d7ff;
+
+  --flash-bg: rgba(245,158,11,.14);
+  --flash-text: #fbbf24;
+  --flash-border: rgba(245,158,11,.25);
+
+  --shadow: 0 18px 50px rgba(0,0,0,.35);
+}
+
 body {
   margin:0;
   min-height:100vh;
@@ -13,18 +56,18 @@ body {
   justify-content:center;
   align-items:center;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  background:linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%);
-  color:#172033;
+  background:var(--bg);
+  color:var(--text);
 }
 
 .card {
   width:100%;
   max-width:430px;
-  background:#fff;
+  background:var(--card);
   border-radius:24px;
   padding:24px;
-  box-shadow:0 18px 50px rgba(27,39,94,.10);
-  border:1px solid rgba(23,32,51,.08);
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
 }
 
 h1 {
@@ -34,7 +77,7 @@ h1 {
 
 p {
   margin:0 0 18px;
-  color:#5c6680;
+  color:var(--muted);
 }
 
 label {
@@ -48,7 +91,9 @@ input {
   box-sizing:border-box;
   padding:12px 14px;
   border-radius:14px;
-  border:1px solid rgba(23,32,51,.14);
+  border:1px solid var(--input-border);
+  background:var(--card);
+  color:var(--text);
   font-size:15px;
 }
 
@@ -64,34 +109,41 @@ input {
   display:flex;
   justify-content:center;
   align-items:center;
+  width:100%;
   min-height:48px;
   border-radius:14px;
   text-decoration:none;
   font-weight:700;
+  box-sizing:border-box;
 }
 
 .actions button {
   border:0;
-  background:#275efe;
+  background:var(--primary);
   color:#fff;
   cursor:pointer;
 }
 
+.actions button:hover {
+  background:var(--primary-hover);
+}
+
 .actions a {
-  background:#eef3ff;
-  color:#1e3a8a;
+  background:var(--secondary-bg);
+  color:var(--secondary-text);
 }
 
 .flash {
   margin-top:14px;
   padding:12px;
   border-radius:12px;
-  background:#fff4e5;
-  color:#9a4d00;
-  border:1px solid rgba(245,159,0,.25);
+  background:var(--flash-bg);
+  color:var(--flash-text);
+  border:1px solid var(--flash-border);
   display:none;
 }
 </style>
+
 </head>
 
 <body>
@@ -115,7 +167,15 @@ input {
 
   <div id="message" class="flash"></div>
 </div>
+<script>
+const THEME_STORAGE_KEY = "engineeringDashboard.theme";
 
+const savedTheme =
+  localStorage.getItem(THEME_STORAGE_KEY) ||
+  (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+document.documentElement.dataset.theme = savedTheme;
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabaseClient.js"></script>
 

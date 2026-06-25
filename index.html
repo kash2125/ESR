@@ -27,6 +27,93 @@
         --danger: #d92d20;
         --shadow: 0 18px 54px rgba(27, 39, 94, 0.10);
         --shadow-soft: 0 12px 28px rgba(27, 39, 94, 0.08);
+        --body-gradient: radial-gradient(circle at top center, rgba(39, 94, 254, 0.10), transparent 36%),
+          linear-gradient(180deg, #f8fbff 0%, #eef4fb 52%, #edf3fb 100%);
+        --nav-bg: rgba(255,255,255,0.90);
+        --card-bg: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,251,255,0.98));
+        --project-bg: radial-gradient(circle at top right, rgba(39,94,254,0.08), transparent 30%),
+          linear-gradient(180deg, #ffffff, #f7faff);
+        --item-bg: #ffffff;
+        --input-bg: #ffffff;
+
+        --scroll-track: #eef4fb;
+        --scroll-thumb: #b8c5dd;
+        --scroll-thumb-hover: #8ea4c8;
+      }
+
+      :root[data-theme="dark"] {
+        --bg: #101828;
+        --bg2: #182235;
+        --panel: #151f32;
+        --panel-soft: #1c2940;
+        --text: #edf4ff;
+        --muted: #aab7cf;
+        --line: rgba(222, 232, 255, 0.13);
+        --line-strong: rgba(222, 232, 255, 0.22);
+        --primary: #7aa2ff;
+        --primary-2: #4f7cff;
+        --gold-bg: rgba(240,184,70,0.18);
+        --green-bg: rgba(18,184,134,0.18);
+        --blue-bg: rgba(122,162,255,0.16);
+        --blue-text: #c7d7ff;
+        --danger: #ff8a80;
+        --shadow: 0 18px 54px rgba(0, 0, 0, 0.28);
+        --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.22);
+        --body-gradient: radial-gradient(circle at top center, rgba(122, 162, 255, 0.14), transparent 34%),
+          linear-gradient(180deg, #0f1726 0%, #121b2d 52%, #101828 100%);
+        --nav-bg: rgba(21,31,50,0.92);
+        --card-bg: linear-gradient(180deg, rgba(21,31,50,0.98), rgba(18,27,45,0.98));
+        --project-bg: radial-gradient(circle at top right, rgba(122,162,255,0.12), transparent 30%),
+          linear-gradient(180deg, #151f32, #111a2b);
+        --item-bg: #182235;
+        --input-bg: #111a2b;
+
+        --scroll-track: #121b2d;
+        --scroll-thumb: #586985;
+        --scroll-thumb-hover: #7b90b6;
+      }
+      :root[data-theme="dark"] .projectMeta,
+      :root[data-theme="dark"] .projectLastEdited,
+      :root[data-theme="dark"] .projectDescription,
+      :root[data-theme="dark"] .presentationProjectEngineer,
+      :root[data-theme="dark"] .presentationLastEdited,
+      :root[data-theme="dark"] .presentationHint,
+      :root[data-theme="dark"] .updatesFeedText,
+      :root[data-theme="dark"] .filterLabel,
+      :root[data-theme="dark"] .emailField label {
+        color: var(--muted);
+      }
+
+      /* Scrollbars */
+
+      /* Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+      }
+
+      /* Chrome, Edge, Safari */
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--scroll-track);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb);
+        border-radius: 999px;
+        border: 2px solid var(--scroll-track);
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--scroll-thumb-hover);
+      }
+
+      ::-webkit-scrollbar-corner {
+        background: var(--scroll-track);
       }
 
       * { box-sizing: border-box; }
@@ -36,9 +123,7 @@
         min-height: 100vh;
         font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--text);
-        background:
-          radial-gradient(circle at top center, rgba(39, 94, 254, 0.10), transparent 36%),
-          linear-gradient(180deg, #f8fbff 0%, #eef4fb 52%, #edf3fb 100%);
+        background: var(--body-gradient);
       }
 
       .shell {
@@ -53,18 +138,29 @@
         top: 10px;
         z-index: 20;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         gap: 14px;
-        flex-wrap: wrap;
         margin-bottom: 16px;
         padding: 12px 16px;
         border: 1px solid var(--line);
         border-radius: 22px;
-        background: rgba(255,255,255,0.90);
+        background: var(--nav-bg);
         backdrop-filter: blur(12px);
         box-shadow: var(--shadow-soft);
-      }
+    }
+
+    .navLeft {
+        display: flex;
+        align-items: center;
+    }
+
+    .navActions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
 
       .navActions,
       .listTools,
@@ -128,15 +224,15 @@
         font-size: 14px;
       }
       .btnComplete {
-        color: #0f6b4f;
+        color: #0f9d6a;
         background: var(--green-bg);
         border-color: rgba(18,184,134,0.18);
         min-height: 40px;
         font-size: 14px;
       }
       .btnRestore {
-        color: #28448c;
-        background: #f0f4ff;
+        color: var(--blue-text);
+        background: var(--blue-bg);
         border-color: rgba(39,94,254,0.16);
         min-height: 40px;
         font-size: 14px;
@@ -147,7 +243,7 @@
       .presentationShell {
         border: 1px solid var(--line);
         border-radius: 28px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,251,255,0.98));
+        background: var(--card-bg);
         box-shadow: var(--shadow);
       }
 
@@ -175,7 +271,7 @@
       }
       .stats {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 16px;
         margin-top: 24px;
       }
@@ -183,7 +279,7 @@
         padding: 22px;
         border-radius: 22px;
         border: 1px solid rgba(39,94,254,0.08);
-        background: linear-gradient(180deg, #ffffff, #f7faff);
+        background: var(--card-bg);
       }
       .statLink {
         color: inherit;
@@ -204,7 +300,7 @@
       .stat span {
         display: block;
         margin-top: 10px;
-        color: #33425d;
+        color: var(--muted);
         font-size: 13px;
         font-weight: 800;
         text-transform: uppercase;
@@ -334,6 +430,7 @@
       .updatesFeedCard {
         display: flex;
         flex-direction: column;
+        height: 420px;
         min-height: 420px;
       }
       .updatesFeedList {
@@ -350,7 +447,7 @@
         padding: 14px;
         border-radius: 16px;
         border: 1px solid rgba(39,94,254,0.10);
-        background: #ffffff;
+        background: var(--item-bg);
         color: inherit;
         text-decoration: none;
         transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
@@ -402,8 +499,8 @@
         padding: 0 14px;
         border-radius: 16px;
         border: 1px solid rgba(20,32,51,0.14);
-        background: #ffffff;
-        color: #142033;
+        background: var(--input-bg);
+        color: var(--text);
         font: inherit;
         font-size: 15px;
         font-weight: 600;
@@ -414,7 +511,7 @@
         border-color: rgba(39,94,254,0.55);
         box-shadow: 0 0 0 4px rgba(39,94,254,0.10);
       }
-      .filterSelect option { background: #ffffff; color: #142033; }
+      .filterSelect option { background: var(--input-bg); color: var(--text); }
 
       .projectsList {
         display: grid;
@@ -425,9 +522,7 @@
         padding: 24px;
         border-radius: 26px;
         border: 1px solid rgba(39,94,254,0.10);
-        background:
-          radial-gradient(circle at top right, rgba(39,94,254,0.08), transparent 30%),
-          linear-gradient(180deg, #ffffff, #f7faff);
+        background: var(--project-bg);
       }
       .projectTop {
         display: flex;
@@ -443,9 +538,9 @@
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
-        background: #f0f4ff;
+        background: var(--blue-bg);
         border: 1px solid rgba(39,94,254,0.12);
-        color: #28448c;
+        color: var(--blue-text);
         font-weight: 800;
         font-size: 13px;
         letter-spacing: 0.05em;
@@ -497,12 +592,12 @@
         border: 1px solid transparent;
       }
       .badgeContract {
-        color: #0f6b4f;
+        color: #0f9d6a;
         background: var(--green-bg);
         border-color: rgba(18,184,134,0.18);
       }
       .badgeNoContract {
-        color: #8a5a00;
+        color: #c28412;
         background: var(--gold-bg);
         border-color: rgba(204,138,0,0.18);
       }
@@ -614,7 +709,7 @@
         padding: 24px;
         border-radius: 24px;
         border: 1px solid var(--line);
-        background: #fff;
+        background: var(--panel);
         box-shadow: var(--shadow);
       }
       .emailModal h3 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.04em; }
@@ -632,6 +727,8 @@
         padding: 0 14px;
         border-radius: 14px;
         border: 1px solid rgba(20,32,51,0.14);
+        background: var(--input-bg);
+        color: var(--text);
         font: inherit;
       }
       .modalActions {
@@ -690,7 +787,7 @@
         border-radius: 24px;
         color: var(--text);
         font-size: 40px;
-        background: #fff;
+        background: var(--panel);
         border-color: var(--line);
       }
       .presentationArrow:disabled { opacity: 0.55; transform: none; cursor: not-allowed; }
@@ -698,7 +795,7 @@
         min-height: 0;
         border-radius: 28px;
         border: 1px solid var(--line);
-        background: linear-gradient(180deg, #ffffff, #f7faff);
+        background: var(--card-bg);
         padding: 28px;
         overflow: auto;
       }
@@ -761,22 +858,48 @@
   <body>
     <div class="shell">
       <nav class="topNav">
+        <div class="navLeft">
+          <button class="iconBtn" id="themeToggleBtn" type="button">
+            Dark Mode
+          </button>
+        </div>
+
         <div class="navActions">
-          <a class="iconBtn" href="https://d3adgoose.github.io/NSAutomation/index.html" target="_blank" rel="noopener noreferrer">NS Engineering Tool</a>
-          <button class="iconBtn" id="openPresentationMode" type="button">Presentation Mode</button>
+          <a class="iconBtn" id="engineeringToolBtn"
+            href="https://d3adgoose.github.io/NSAutomation/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="display:none;">
+            NS Engineering Tool
+          </a>
 
-          <a class="btn btnSecondary" id="loginBtn" href="login.html">Log In</a>
+          <button class="iconBtn" id="openPresentationMode" type="button">
+            Presentation Mode
+          </button>
 
-          <a class="btn btnSecondary" id="addProjectBtn" href="add_project.html" style="display:none;">
+          <a class="btn btnSecondary" id="loginBtn" href="login.html">
+            Log In
+          </a>
+
+          <a class="btn btnSecondary"
+            id="addProjectBtn"
+            href="add_project.html"
+            style="display:none;">
             Add Project
           </a>
 
-          <button class="btn btnSecondary" id="logoutBtn" type="button" style="display:none;">
+          <button class="btn btnSecondary"
+                  id="logoutBtn"
+                  type="button"
+                  style="display:none;">
             Log Out
           </button>
 
-          <a class="btn btnPrimary" href="esr.html">Generate ESR Form</a>
+          <a class="btn btnPrimary" href="esr.html">
+            Generate ESR Form
+          </a>
         </div>
+
       </nav>
 
       <section class="hero" id="overview">
@@ -787,21 +910,20 @@
             <h2 id="completedCount">0</h2>
             <span>Completed Projects</span>
           </a>
+
           <a class="stat statLink" href="#active-projects">
             <h2 id="totalProjects">0</h2>
             <span>Active Projects</span>
           </a>
+
           <div class="stat">
             <h2 id="totalEngineers">0</h2>
             <span>Engineers Carrying Work</span>
           </div>
+
           <div class="stat">
             <h2 id="totalSalesPeople">0</h2>
             <span>Sales People Represented</span>
-          </div>
-          <div class="stat">
-            <h2 id="contractCount">0</h2>
-            <span>Projects with Contract</span>
           </div>
         </div>
       </section>
@@ -955,7 +1077,50 @@
     <script src="supabaseClient.js"></script>
 
     <script>
+      const THEME_STORAGE_KEY = "engineeringDashboard.theme";
+
+      function applyTheme(theme) {
+        const normalizedTheme = theme === "dark" ? "dark" : "light";
+        document.documentElement.dataset.theme = normalizedTheme;
+        localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
+
+        const themeToggleBtn = document.getElementById("themeToggleBtn");
+        if (themeToggleBtn) {
+          themeToggleBtn.textContent = normalizedTheme === "dark" ? "Light Mode" : "Dark Mode";
+        }
+
+        if (typeof renderCharts === "function") {
+          renderCharts();
+        }
+      }
+
+      function initThemeToggle() {
+        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+
+        const initialTheme =
+          savedTheme ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+
+        applyTheme(initialTheme);
+
+        const themeToggleBtn = document.getElementById("themeToggleBtn");
+
+        if (themeToggleBtn) {
+          themeToggleBtn.addEventListener("click", () => {
+            const nextTheme =
+              document.documentElement.dataset.theme === "dark"
+                ? "light"
+                : "dark";
+
+            applyTheme(nextTheme);
+          });
+        }
+      }
+
       async function updateAuthButtons() {
+        const engineeringToolBtn = document.getElementById("engineeringToolBtn");
         const loginBtn = document.getElementById("loginBtn");
         const addProjectBtn = document.getElementById("addProjectBtn");
         const logoutBtn = document.getElementById("logoutBtn");
@@ -964,6 +1129,7 @@
         const isLoggedIn = !!data.session;
 
         if (loginBtn) loginBtn.style.display = isLoggedIn ? "none" : "inline-flex";
+        if (engineeringToolBtn) engineeringToolBtn.style.display = isLoggedIn ? "inline-flex" : "none";
         if (addProjectBtn) addProjectBtn.style.display = isLoggedIn ? "inline-flex" : "none";
         if (logoutBtn) logoutBtn.style.display = isLoggedIn ? "inline-flex" : "none";
       }
@@ -974,6 +1140,7 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
+        initThemeToggle();
         updateAuthButtons();
 
         const logoutBtn = document.getElementById("logoutBtn");
@@ -998,6 +1165,10 @@
       };
       let presentationProjects = [...projectsData];
       let presentationIndex = 0;
+
+      function cssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      }
 
       function makeDoughnut(canvasId, labels, values, emptyText) {
         const ctx = document.getElementById(canvasId);
@@ -1030,7 +1201,7 @@
               legend: {
                 position: 'bottom',
                 labels: {
-                  color: '#24324b',
+                  color: cssVar('--text') || '#24324b',
                   padding: 18,
                   usePointStyle: true,
                   pointStyle: 'circle',
@@ -1038,10 +1209,10 @@
                 }
               },
               tooltip: {
-                backgroundColor: 'rgba(255,255,255,0.98)',
-                titleColor: '#172033',
-                bodyColor: '#24324b',
-                borderColor: 'rgba(23,32,51,0.12)',
+                backgroundColor: cssVar('--panel') || 'rgba(255,255,255,0.98)',
+                titleColor: cssVar('--text') || '#172033',
+                bodyColor: cssVar('--text') || '#24324b',
+                borderColor: cssVar('--line-strong') || 'rgba(23,32,51,0.12)',
                 borderWidth: 1,
                 callbacks: {
                   label(context) {
@@ -1103,7 +1274,12 @@
       }
 
       function projectStatusClass(value) {
-        return displayProjectStatus(value) === 'Contract' ? 'badgeContract' : 'badgeNoContract';
+        const status = displayProjectStatus(value).toLowerCase();
+
+        if (status === 'completed') return 'badgeCompleted';
+        if (status === 'contract') return 'badgeContract';
+
+        return 'badgeNoContract';
       }
 
       function projectAnchorId(projectNumber) {
@@ -1526,7 +1702,6 @@ function renderStats() {
   document.getElementById('totalProjects').textContent = projectsData.length;
   document.getElementById('totalEngineers').textContent = engineers.size;
   document.getElementById('totalSalesPeople').textContent = salesPeople.size;
-  document.getElementById('contractCount').textContent = contracts.length;
   document.getElementById('completedCount').textContent = completedProjectsData.length;
 }
 
@@ -1733,7 +1908,7 @@ function renderLatestUpdatesFeed() {
       const right = b.sortDate && !Number.isNaN(b.sortDate.getTime()) ? b.sortDate.getTime() : 0;
       return right - left;
     })
-    .slice(0, 3);
+    .slice(0, 10);
 
   if (!updates.length) {
     feed.innerHTML = `<div class="empty">No latest updates yet.</div>`;

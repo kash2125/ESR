@@ -5,11 +5,64 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>ESR Generator</title>
     <style>
-      body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%); color:#172033; }
+      :root {
+        --bg: linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%);
+        --card: #ffffff;
+        --text: #172033;
+        --muted: #5c6680;
+        --border: rgba(23,32,51,.08);
+        --input-border: rgba(23,32,51,.14);
+
+        --primary: #275efe;
+        --primary-hover: #1f4fe0;
+
+        --secondary-bg: #eef3ff;
+        --secondary-text: #1e3a8a;
+
+        --flash-bg: #fff4e5;
+        --flash-text: #9a4d00;
+        --flash-border: rgba(245,159,0,.25);
+
+        --shadow: 0 18px 50px rgba(27,39,94,.10);
+      }
+
+      :root[data-theme="dark"] {
+        --bg: linear-gradient(180deg,#0f1726 0%,#101828 100%);
+        --card: #151f32;
+        --text: #edf4ff;
+        --muted: #aab7cf;
+        --border: rgba(255,255,255,.08);
+        --input-border: rgba(255,255,255,.12);
+
+        --primary: #4f7cff;
+        --primary-hover: #6a8eff;
+
+        --secondary-bg: #1c2940;
+        --secondary-text: #c7d7ff;
+
+        --flash-bg: rgba(245,158,11,.14);
+        --flash-text: #fbbf24;
+        --flash-border: rgba(245,158,11,.25);
+
+        --shadow: 0 18px 50px rgba(0,0,0,.35);
+      }
+
+      body {
+        margin:0;
+        font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+        background:var(--bg);
+        color:var(--text);
+      }
       body > .topbar, body > p, body > #pageMessage, body > form { max-width:1200px; margin-left:auto; margin-right:auto; }
       body > .topbar { padding:28px 18px 0; }
       body > p, body > #pageMessage, body > form { padding-left:18px; padding-right:18px; }
-      .card { background:#fff; border-radius:24px; box-shadow:0 18px 50px rgba(27,39,94,.10); border:1px solid rgba(23,32,51,.08); padding:24px; }
+      .card {
+        background: var(--card);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        padding: 24px;
+      }
       .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
       .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
       .layout > .card { margin-top: 0 !important; }
@@ -21,26 +74,88 @@
       .field { min-width: 0; }
 
       .field label { display:block; margin:4px 0 6px; font-weight:700; }
-      .field input, .field textarea, .field select { width:100%; min-width:0; box-sizing:border-box; padding:12px 14px; border-radius:14px; border:1px solid rgba(23,32,51,.14); font-size:15px; font-family:inherit; background:#fff; color:#172033; }
+      .field input,
+      .field textarea,
+      .field select {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--input-border);
+        font-size: 15px;
+        font-family: inherit;
+        background: var(--card);
+        color: var(--text);
+      }
       .field textarea { min-height: 86px; resize: vertical; }
       .span2 { grid-column: 1 / -1; }
-      .muted { color:#5c6680; }
+      .muted {
+        color: var(--muted);
+      }
       input[type="file"] { padding: 8px; border: 1px solid #ccc; border-radius: 10px; }
 
-      .primaryButton { border: 0; background: #275efe;color: #fff;cursor: pointer;
- }
+      .primaryButton,
+      .btnPrimary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: #fff;
+        font: inherit;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 14px 26px rgba(39, 94, 254, 0.24);
+        transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      }
 
-      .primaryButton:hover { filter: brightness(1.05);}
+      .primaryButton:hover,
+      .btnPrimary:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.04);
+      }
 
-      .secondaryButton {background: #eef3ff;color: #1e3a8a;border: none; }
-      button:hover { opacity: 0.92; }
+      .secondaryButton,
+      .actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(39,94,254,0.12);
+        background: rgba(39,94,254,0.05);
+        color: var(--text);
+        font: inherit;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+      }
+
+      .secondaryButton:hover,
+      .actions a:hover {
+        transform: translateY(-1px);
+      }
       .flash { margin:0 0 16px; padding:12px 14px; border-radius:12px; background:#fff4e5; color:#9a4d00; border:1px solid rgba(245,159,0,.25); }
       code { background: #f6f6f6; padding: 2px 6px; border-radius: 6px; }
       ul { margin-top: 8px; }
     
       .topbar { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
-      .topbar h1 { margin:0 0 6px; font-size:30px; color:#172033; }
+      .topbar h1 {
+        margin: 0 0 6px;
+        font-size: 30px;
+        color: var(--text);
+      }
       .brandLogo { display:block; max-width: 260px; width: 260px; height:auto; margin-left:auto; }
+      :root[data-theme="dark"] .brandLogo {
+        filter: invert(1) brightness(1.6) contrast(1.05);
+      }
       @media (max-width: 680px) { .brandLogo { max-width: 180px; width: 180px; } }
 
 
@@ -68,11 +183,16 @@
 
       .btnBig {width: 100%;min-height: 56px;font-size: 16px;}
       .actions { display: flex; gap: 12px;flex-wrap: wrap; margin-top: 18px;}
-      .actions a {display: inline-flex;align-items: center;justify-content: center; min-height: 48px;padding: 0 18px; border-radius: 14px;font-weight: 700; text-decoration: none; background: #eef3ff;color: #1e3a8a;}
       
       .fileInput { display:none; }
       .clickable { cursor:pointer; }
       @media (max-width: 680px) { .fileName { max-width: 280px; } }
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
     
 </style>
   </head>
@@ -191,7 +311,7 @@
               BID
             </label>
             <label style="display:flex; gap:10px; align-items:center;">
-              <input type="checkbox" class="tor" name="type_request_cb" value="JOB_ORDER" checked />
+              <input type="checkbox" class="tor" name="type_request_cb" value="JOB_ORDER" />
               JOB ORDER
             </label>
             <label style="display:flex; gap:10px; align-items:center;">
@@ -349,6 +469,15 @@
   </div>
 </div>
         </div>
+        <script>
+          const THEME_STORAGE_KEY = "engineeringDashboard.theme";
+
+          const savedTheme =
+            localStorage.getItem(THEME_STORAGE_KEY) ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+          document.documentElement.dataset.theme = savedTheme;
+          </script>
           <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
           <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
           <script src="esrGenerator.js"></script>
@@ -372,20 +501,21 @@
         torBoxes.forEach(cb => {
           cb.addEventListener('change', () => {
             if (cb.checked) {
-              torBoxes.forEach(other => { if (other !== cb) other.checked = false; });
+              torBoxes.forEach(other => {
+                if (other !== cb) other.checked = false;
+              });
+
               setType(cb.value);
             } else {
-              // Don’t allow "none selected" (default back to JOB_ORDER)
-              cb.checked = true;
-              setType(cb.value);
+              hiddenType.value = "";
+              dsSub.disabled = false;
             }
           });
         });
 
-        // Initialize defaults
-        torBoxes.forEach(cb => {
-          if (cb.checked) setType(cb.value);
-        });
+        // Start with no Type of Request selected
+        hiddenType.value = "";
+        dsSub.disabled = false;
       </script>
       
     <div class="card" style="margin-top:16px;">
