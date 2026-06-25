@@ -2129,7 +2129,9 @@ function exportActiveProjectsPdf() {
     return;
   }
 
-  const visibleProjects = projectsData;
+  const visibleProjects = [...projectsData].sort((a, b) => {
+    return Number(a.project_number || 0) - Number(b.project_number || 0);
+  });
 
   const rows = visibleProjects.map(project => {
     const renderedUpdates = renderProjectUpdates(
