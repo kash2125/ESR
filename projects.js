@@ -9,7 +9,7 @@ const SALES_PERSON_OPTIONS = [
   "Francis Tenggardjaja"
 ];
 
-const PROJECT_STATUS_OPTIONS = ["Contract", "Request", "Completed"];
+const PROJECT_STATUS_OPTIONS = ["Contract", "No Contract", "Completed"];
 
 const DEFAULT_DESCRIPTION_COLOR = "#000000";
 const ALLOWED_DESCRIPTION_COLORS = ["#000000", "#c62828"];
@@ -17,9 +17,9 @@ const ALLOWED_DESCRIPTION_COLORS = ["#000000", "#c62828"];
 function normalizeProjectStatus(value) {
   const raw = String(value || "").trim().toLowerCase();
   if (raw === "contract") return "Contract";
-  if (raw === "no contract" || raw === "request") return "Request";
+  if (raw === "no contract" || raw === "request") return "No Contract";
   if (raw === "completed") return "Completed";
-  return "Request";
+  return "No Contract";
 }
 
 function normalizeSalesPerson(value) {

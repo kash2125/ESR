@@ -801,7 +801,7 @@
           </div>
           <div class="stat">
             <h2 id="contractCount">0</h2>
-            <span>Contract Requests</span>
+            <span>Projects with Contract</span>
           </div>
         </div>
       </section>
@@ -817,7 +817,7 @@
           </div>
 
           <div class="card chartCard">
-            <h4>Request Type Mix</h4>
+            <h4>Status Mix</h4>
             <div class="chartWrap">
               <canvas id="statusChart"></canvas>
             </div>
@@ -1098,7 +1098,7 @@
 
       function displayProjectStatus(value) {
         const status = String(value || '').trim();
-        if (!status || status.toLowerCase() === 'no contract') return 'Request';
+        if (!status || status.toLowerCase() === 'request') return 'No Contract';
         return status;
       }
 
@@ -1170,7 +1170,7 @@
             <div class="presentationMetaGrid">
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Start Date</span><div class="presentationMetaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
               <div class="presentationMetaItem"><span class="presentationMetaLabel">Added</span><div class="presentationMetaValue">${escapeHtml(addedText)}</div></div>
-              <div class="presentationMetaItem"><span class="presentationMetaLabel">Request Type</span><div class="presentationMetaValue">${escapeHtml(statusLabel)}</div></div>
+              <div class="presentationMetaItem"><span class="presentationMetaLabel">Status</span><div class="presentationMetaValue">${escapeHtml(statusLabel)}</div></div>
             </div>
             <div class="presentationDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at))}</div>
           </div>`;
@@ -1812,7 +1812,7 @@ function renderProjects() {
         <div class="metaGrid">
           <div class="metaItem"><span class="metaLabel">Start Date</span><div class="metaValue">${escapeHtml(project.start_date || 'Not set')}</div></div>
           <div class="metaItem"><span class="metaLabel">Added</span><div class="metaValue">${escapeHtml(addedText)}</div></div>
-          <div class="metaItem"><span class="metaLabel">Request Type</span><div class="metaValue">${escapeHtml(statusLabel)}</div></div>
+          <div class="metaItem"><span class="metaLabel">Status</span><div class="metaValue">${escapeHtml(statusLabel)}</div></div>
         </div>
 
        <div class="projectDescription">${renderProjectUpdates(project.description_html || project.description, formatUpdateTimestamp(project.created_at))}</div>
@@ -2030,7 +2030,7 @@ function exportActiveProjectsPdf() {
       <tr>
         <th>Job #</th>
         <th>Job Name</th>
-        <th>Request<br>Type</th>
+        <th>Status</th>
         <th>Sales Person</th>
         <th>Start<br>Date</th>
         <th>Engineer</th>
