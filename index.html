@@ -153,6 +153,8 @@
     .navLeft {
         display: flex;
         align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
     .navActions {
@@ -372,6 +374,54 @@
         min-width: 130px;
       }
 
+      .siteSearch {
+        position: relative;
+        width: min(360px, 42vw);
+        min-width: 230px;
+      }
+      .siteSearchInput {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 16px 0 42px;
+        border-radius: 999px;
+        border: 1px solid rgba(39,94,254,0.14);
+        background: var(--input-bg);
+        color: var(--text);
+        font: inherit;
+        font-weight: 700;
+        outline: none;
+        box-shadow: 0 1px 0 rgba(20,32,51,0.04);
+      }
+      .siteSearchInput:focus {
+        border-color: rgba(39,94,254,0.55);
+        box-shadow: 0 0 0 4px rgba(39,94,254,0.10);
+      }
+      .siteSearchInput::placeholder { color: var(--muted); }
+      .siteSearch::before {
+        content: "";
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--muted);
+        border-radius: 50%;
+        transform: translateY(-55%);
+        pointer-events: none;
+      }
+      .siteSearch::after {
+        content: "";
+        position: absolute;
+        left: 29px;
+        top: 28px;
+        width: 8px;
+        height: 2px;
+        border-radius: 999px;
+        background: var(--muted);
+        transform: rotate(45deg);
+        pointer-events: none;
+      }
+
       .chartRow {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -523,6 +573,12 @@
         border-radius: 26px;
         border: 1px solid rgba(39,94,254,0.10);
         background: var(--project-bg);
+        transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        scroll-margin-top: 94px;
+      }
+      .projectItem.isSearchMatch {
+        border-color: rgba(39,94,254,0.92);
+        box-shadow: 0 0 0 4px rgba(39,94,254,0.18), 0 14px 30px rgba(39,94,254,0.16);
       }
       .projectTop {
         display: flex;
@@ -678,7 +734,8 @@
       }
       .projectActions { margin-top: 16px; justify-content: flex-end; }
       .inlineForm { margin: 0; }
-      .hiddenByFilter { display: none !important; }
+      .hiddenByFilter,
+      .hiddenBySearch { display: none !important; }
       #filteredEmptyState,
       #completedFilteredEmptyState { margin-top: 14px; display: none; }
 
@@ -818,6 +875,113 @@
         overflow-wrap: anywhere;
       }
       .presentationDescription { font-size: 22px; min-height: 180px; }
+      .presentationSummary {
+        display: grid;
+        gap: 24px;
+      }
+      .presentationSummaryHero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        flex-wrap: wrap;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .presentationSummaryKicker,
+      .presentationMetricLabel,
+      .presentationBarLabel,
+      .presentationBarCount {
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      .presentationSummaryTitle {
+        margin: 8px 0 0;
+        font-size: clamp(40px, 4.5vw, 68px);
+        line-height: 1;
+        letter-spacing: -0.045em;
+      }
+      .presentationSummaryDate {
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        color: var(--blue-text);
+        background: var(--blue-bg);
+        border: 1px solid rgba(39,94,254,0.14);
+        font-weight: 800;
+      }
+      .presentationMetricGrid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .presentationMetric,
+      .presentationChartPanel {
+        padding: 18px;
+        border-radius: 18px;
+        background: var(--panel-soft);
+        border: 1px solid var(--line);
+      }
+      .presentationMetricValue {
+        margin-top: 8px;
+        font-size: clamp(30px, 3vw, 46px);
+        line-height: 1;
+        font-weight: 800;
+        color: var(--text);
+      }
+      .presentationMetricDetail {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.45;
+      }
+      .presentationSummaryCharts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .presentationChartPanel h3 {
+        margin: 0 0 14px;
+        font-size: 22px;
+        letter-spacing: -0.03em;
+      }
+      .presentationBarList {
+        display: grid;
+        gap: 12px;
+      }
+      .presentationBarRow {
+        display: grid;
+        grid-template-columns: minmax(110px, .62fr) minmax(110px, 1fr) minmax(34px, auto);
+        align-items: center;
+        gap: 10px;
+      }
+      .presentationBarLabel {
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .presentationBarTrack {
+        height: 12px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(39,94,254,0.10);
+      }
+      .presentationBarFill {
+        height: 100%;
+        min-width: 8px;
+        border-radius: inherit;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      }
+      .presentationEmptyNote {
+        color: var(--muted);
+        font-weight: 700;
+      }
       .collapseBtn {
         display: inline-flex;
         align-items: center;
@@ -862,7 +1026,9 @@
         .chartRow,
         .metaGrid,
         .presentationMetaGrid,
-        .presentationContent { grid-template-columns: 1fr; }
+        .presentationContent,
+        .presentationMetricGrid,
+        .presentationSummaryCharts { grid-template-columns: 1fr; }
         .presentationArrow {
           min-width: 0;
           min-height: 56px;
@@ -875,6 +1041,10 @@
       }
       @media (max-width: 720px) {
         .shell { width: calc(100vw - 16px); }
+        .topNav { align-items: stretch; }
+        .navLeft,
+        .navActions { width: 100%; }
+        .siteSearch { width: 100%; min-width: 0; }
         .hero,
         .card,
         .presentationShell { padding: 18px; }
@@ -890,6 +1060,10 @@
           <button class="iconBtn" id="themeToggleBtn" type="button">
             Dark Mode
           </button>
+
+          <label class="siteSearch" for="siteSearchInput" aria-label="Search">
+            <input class="siteSearchInput" id="siteSearchInput" type="search" placeholder="Search" autocomplete="off" />
+          </label>
         </div>
 
         <div class="navActions">
@@ -1215,7 +1389,8 @@
         projectSort: 'engineeringDashboard.projectSort',
         completedEngineerFilter: 'engineeringDashboard.completedEngineerFilter',
         completedSalespersonFilter: 'engineeringDashboard.completedSalespersonFilter',
-        completedProjectSort: 'engineeringDashboard.completedProjectSort'
+        completedProjectSort: 'engineeringDashboard.completedProjectSort',
+        projectSearch: 'engineeringDashboard.projectSearch'
       };
       let presentationProjects = [...projectsData];
       let presentationIndex = 0;
@@ -1308,6 +1483,87 @@
         return cloned;
       }
 
+      function normalizeDashboardSearch(value) {
+        return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      }
+
+      function getDashboardSearchQuery() {
+        return normalizeDashboardSearch(document.getElementById('siteSearchInput')?.value || '');
+      }
+
+      function projectMatchesDashboardSearch(project, query) {
+        if (!query) return true;
+        const descriptionText = getPlainTextFromHtml(project.description_html || project.description || '');
+        const searchText = normalizeDashboardSearch([
+          project.project_number,
+          project.project_name,
+          project.engineer,
+          project.sales_person,
+          project.project_status,
+          project.contract_status,
+          project.original_status,
+          project.previous_status,
+          project.start_date,
+          project.created_at,
+          project.completed_date,
+          descriptionText
+        ].join(' '));
+        return searchText.includes(query);
+      }
+
+      function cardMatchesDashboardSearch(card, query) {
+        if (!query) return true;
+        return normalizeDashboardSearch(card.textContent).includes(query);
+      }
+
+      function updateProjectCardSearchState(card, query, matchesFilters) {
+        const matchesSearch = cardMatchesDashboardSearch(card, query);
+        const isVisibleMatch = matchesFilters && matchesSearch;
+        card.classList.toggle('hiddenBySearch', !matchesSearch);
+        card.classList.toggle('isSearchMatch', !!query && isVisibleMatch);
+        return isVisibleMatch;
+      }
+
+      function openCollapsedSectionForCard(card) {
+        const content = card.closest('.collapsibleContent');
+        if (!content || !content.classList.contains('isCollapsed')) return;
+        content.classList.remove('isCollapsed');
+        const button = document.querySelector('[data-collapse-target="' + content.id + '"]');
+        if (button) button.classList.remove('isClosed');
+      }
+
+      function scrollToFirstSearchMatch() {
+        const query = getDashboardSearchQuery();
+        if (!query) return;
+        const firstMatch = document.querySelector('.projectItem.isSearchMatch:not(.hiddenByFilter):not(.hiddenBySearch)');
+        if (!firstMatch) return;
+        openCollapsedSectionForCard(firstMatch);
+        requestAnimationFrame(() => firstMatch.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      }
+
+      function applyDashboardProjectFilters({ scrollToMatch = false } = {}) {
+        document.getElementById('engineerFilter')?.dispatchEvent(new Event('change'));
+        document.getElementById('completedEngineerFilter')?.dispatchEvent(new Event('change'));
+        if (scrollToMatch) scrollToFirstSearchMatch();
+      }
+
+      function initDashboardSearch() {
+        const input = document.getElementById('siteSearchInput');
+        if (!input) return;
+        if (input.dataset.searchReady !== 'true') {
+          input.value = localStorage.getItem(STORAGE_KEYS.projectSearch) || '';
+          input.addEventListener('input', () => {
+            localStorage.setItem(STORAGE_KEYS.projectSearch, input.value);
+            applyDashboardProjectFilters({ scrollToMatch: true });
+          });
+          input.addEventListener('keydown', event => {
+            if (event.key === 'Enter') scrollToFirstSearchMatch();
+          });
+          input.dataset.searchReady = 'true';
+        }
+        applyDashboardProjectFilters();
+      }
+
       function formatUpdateTimestamp(value) {
         if (!value) return '';
         const date = new Date(value);
@@ -1369,8 +1625,149 @@
       }
 
       function getLastEditedText(project) {
-        const latest = getProjectLatestUpdateInfo(project);
-        return latest.timestamp ? formatElapsedSince(latest.sortDate) : 'No timestamp';
+        const lastActivityDate = getProjectLastActivityDate(project);
+        return lastActivityDate ? formatElapsedSince(lastActivityDate) : 'No timestamp';
+      }
+
+      function formatCountLabel(count, singular, plural = singular + 's') {
+        return count + ' ' + (count === 1 ? singular : plural);
+      }
+
+      function isSameDay(left, right) {
+        return !!left && !!right &&
+          left.getFullYear() === right.getFullYear() &&
+          left.getMonth() === right.getMonth() &&
+          left.getDate() === right.getDate();
+      }
+
+      function isSameMonth(left, right) {
+        return !!left && !!right &&
+          left.getFullYear() === right.getFullYear() &&
+          left.getMonth() === right.getMonth();
+      }
+
+      function countByValue(items, getter) {
+        return items.reduce((counts, item) => {
+          const key = String(getter(item) || 'Not set').trim() || 'Not set';
+          counts[key] = (counts[key] || 0) + 1;
+          return counts;
+        }, {});
+      }
+
+      function getSortedCountRows(counts, limit = 5) {
+        return Object.entries(counts)
+          .map(([label, value]) => ({ label, value }))
+          .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label))
+          .slice(0, limit);
+      }
+
+      function formatNameList(names) {
+        if (!names.length) return 'No one';
+        if (names.length === 1) return names[0];
+        if (names.length === 2) return names[0] + ' and ' + names[1];
+        return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
+      }
+
+      function getTopWorkload(projects) {
+        const rows = getSortedCountRows(countByValue(projects, project => project.engineer || 'Unassigned'), 20)
+          .filter(row => row.label !== 'Not set');
+        if (!rows.length) return { names: [], count: 0 };
+        const topCount = rows[0].value;
+        return {
+          names: rows.filter(row => row.value === topCount).map(row => row.label),
+          count: topCount
+        };
+      }
+
+      function renderPresentationBarChart(title, rows, emptyText) {
+        const maxValue = Math.max(...rows.map(row => row.value), 1);
+        const rowsHtml = rows.map(row => {
+          const width = Math.max(8, Math.round((row.value / maxValue) * 100));
+          return [
+            '<div class="presentationBarRow">',
+              '<div class="presentationBarLabel" title="' + escapeHtml(row.label) + '">' + escapeHtml(row.label) + '</div>',
+              '<div class="presentationBarTrack"><div class="presentationBarFill" style="width:' + width + '%"></div></div>',
+              '<div class="presentationBarCount">' + escapeHtml(row.value) + '</div>',
+            '</div>'
+          ].join('');
+        }).join('');
+
+        return [
+          '<section class="presentationChartPanel">',
+            '<h3>' + escapeHtml(title) + '</h3>',
+            rows.length
+              ? '<div class="presentationBarList">' + rowsHtml + '</div>'
+              : '<div class="presentationEmptyNote">' + escapeHtml(emptyText) + '</div>',
+          '</section>'
+        ].join('');
+      }
+
+      function renderPresentationSummaryMarkup() {
+        const activeProjects = presentationProjects;
+        const today = new Date();
+        const updatedToday = activeProjects.filter(project => isSameDay(getProjectLastActivityDate(project), today)).length;
+        const completedThisMonth = completedProjectsData.filter(project => {
+          const completedDate = parseDashboardDate(project.completed_date || project.updated_at || project.created_at);
+          return isSameMonth(completedDate, today);
+        }).length;
+        const topWorkload = getTopWorkload(activeProjects);
+        const workloadNames = formatNameList(topWorkload.names.slice(0, 3));
+        const workloadVerb = topWorkload.names.length === 1 ? 'has' : 'have';
+        const workloadDetail = topWorkload.names.length
+          ? workloadNames + ' ' + workloadVerb + ' the highest project workload' + (topWorkload.count ? ' at ' + formatCountLabel(topWorkload.count, 'project') + '.' : '.')
+          : 'No engineer workload data yet.';
+        const workloadRows = getSortedCountRows(countByValue(activeProjects, project => project.engineer || 'Unassigned'));
+        const statusRows = getSortedCountRows(countByValue(activeProjects, project => displayProjectStatus(project.project_status)));
+        const currentDateLabel = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        return [
+          '<div class="presentationStage presentationSummary">',
+            '<div class="presentationSummaryHero">',
+              '<div>',
+                '<div class="presentationSummaryKicker">Engineering Workload Briefing</div>',
+                '<h1 class="presentationSummaryTitle">Current Project Snapshot</h1>',
+              '</div>',
+              '<div class="presentationSummaryDate">' + escapeHtml(currentDateLabel) + '</div>',
+            '</div>',
+            '<div class="presentationMetricGrid">',
+              '<div class="presentationMetric">',
+                '<div class="presentationMetricLabel">Active Projects</div>',
+                '<div class="presentationMetricValue">' + escapeHtml(activeProjects.length) + '</div>',
+                '<div class="presentationMetricDetail">' + escapeHtml(formatCountLabel(activeProjects.length, 'active project')) + ' currently in progress.</div>',
+              '</div>',
+              '<div class="presentationMetric">',
+                '<div class="presentationMetricLabel">Updated Today</div>',
+                '<div class="presentationMetricValue">' + escapeHtml(updatedToday) + '</div>',
+                '<div class="presentationMetricDetail">' + escapeHtml(formatCountLabel(updatedToday, 'project')) + ' updated today.</div>',
+              '</div>',
+              '<div class="presentationMetric">',
+                '<div class="presentationMetricLabel">Highest Workload</div>',
+                '<div class="presentationMetricValue">' + escapeHtml(topWorkload.count || 0) + '</div>',
+                '<div class="presentationMetricDetail">' + escapeHtml(workloadDetail) + '</div>',
+              '</div>',
+              '<div class="presentationMetric">',
+                '<div class="presentationMetricLabel">Completed This Month</div>',
+                '<div class="presentationMetricValue">' + escapeHtml(completedThisMonth) + '</div>',
+                '<div class="presentationMetricDetail">' + escapeHtml(formatCountLabel(completedThisMonth, 'project')) + ' completed this month.</div>',
+              '</div>',
+            '</div>',
+            '<div class="presentationSummaryCharts">',
+              renderPresentationBarChart('Workload by Engineer', workloadRows, 'No active workload data yet.'),
+              renderPresentationBarChart('Active Status Mix', statusRows, 'No active status data yet.'),
+            '</div>',
+          '</div>'
+        ].join('');
+      }
+
+      function renderPresentationSlideMarkup(slide) {
+        if (slide?.type === 'summary') return renderPresentationSummaryMarkup();
+        return renderPresentationMarkup(slide?.project || slide);
+      }
+
+      function getCurrentPresentationSlide() {
+        return presentationIndex === 0
+          ? { type: 'summary' }
+          : { type: 'project', project: presentationProjects[presentationIndex - 1] };
       }
 
       function renderPresentationMarkup(project) {
@@ -1410,7 +1807,7 @@
         const container = document.getElementById(containerId);
         if (!container) return;
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const nextMarkup = renderPresentationMarkup(project);
+        const nextMarkup = renderPresentationSlideMarkup(project);
         if (!container.innerHTML.trim() || reduceMotion) {
           container.innerHTML = nextMarkup;
           return;
@@ -1431,23 +1828,27 @@
       function updatePresentationCounter() {
         const counter = document.getElementById('presentationCounter');
         if (!counter) return;
-        counter.textContent = presentationProjects.length
-          ? `Project ${presentationIndex + 1} of ${presentationProjects.length}`
-          : 'No matching projects';
+        if (presentationIndex === 0) {
+          counter.textContent = presentationProjects.length
+            ? 'Summary + ' + presentationProjects.length + ' ' + (presentationProjects.length === 1 ? 'project' : 'projects')
+            : 'Summary';
+          return;
+        }
+        counter.textContent = 'Project ' + presentationIndex + ' of ' + presentationProjects.length;
       }
 
       function setPresentationProjects(projects, preserveCurrent = true) {
-        const currentNumber = preserveCurrent ? presentationProjects[presentationIndex]?.project_number : null;
+        const currentNumber = preserveCurrent && presentationIndex > 0
+          ? presentationProjects[presentationIndex - 1]?.project_number
+          : null;
         presentationProjects = [...projects];
-        if (!presentationProjects.length) {
-          presentationIndex = 0;
-        } else if (currentNumber) {
+        if (currentNumber) {
           const found = presentationProjects.findIndex(project => project.project_number === currentNumber);
-          presentationIndex = found >= 0 ? found : 0;
+          presentationIndex = found >= 0 ? found + 1 : 0;
         } else {
           presentationIndex = 0;
         }
-        animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], 'next');
+        animateSwap('presentationCarouselCard', getCurrentPresentationSlide(), 'next');
         updatePresentationCounter();
       }
 
@@ -1578,12 +1979,14 @@
           const selectedEngineer = filterSelect.value;
           const selectedSalesperson = salespersonSelect.value;
           const sortMode = sortSelect.value;
+          const searchQuery = getDashboardSearchQuery();
           persistState(selectedEngineer, selectedSalesperson, sortMode);
 
           const sortedData = sortProjectsArray(projectsData, sortMode).filter(project => {
             const matchesEngineer = selectedEngineer === '__all__' || (project.engineer || '').trim() === selectedEngineer;
             const matchesSalesperson = selectedSalesperson === '__all__' || (project.sales_person || '').trim() === selectedSalesperson;
-            return matchesEngineer && matchesSalesperson;
+            const matchesSearch = projectMatchesDashboardSearch(project, searchQuery);
+            return matchesEngineer && matchesSalesperson && matchesSearch;
           });
           setPresentationProjects(sortedData, false);
 
@@ -1599,9 +2002,10 @@
           sortedCards.forEach(card => {
             const matchesEngineer = selectedEngineer === '__all__' || (card.dataset.engineer || '').trim() === selectedEngineer;
             const matchesSalesperson = selectedSalesperson === '__all__' || (card.dataset.salesperson || '').trim() === selectedSalesperson;
-            const matches = matchesEngineer && matchesSalesperson;
-            card.classList.toggle('hiddenByFilter', !matches);
-            if (matches) visibleCount += 1;
+            const matchesFilters = matchesEngineer && matchesSalesperson;
+            const isVisibleMatch = updateProjectCardSearchState(card, searchQuery, matchesFilters);
+            card.classList.toggle('hiddenByFilter', !matchesFilters);
+            if (isVisibleMatch) visibleCount += 1;
           });
           if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
         }
@@ -1649,6 +2053,7 @@
           const selectedEngineer = engineerSelect.value;
           const selectedSalesperson = salespersonSelect.value;
           const sortMode = sortSelect.value;
+          const searchQuery = getDashboardSearchQuery();
 
           localStorage.setItem(STORAGE_KEYS.completedEngineerFilter, selectedEngineer);
           localStorage.setItem(STORAGE_KEYS.completedSalespersonFilter, selectedSalesperson);
@@ -1666,9 +2071,10 @@
           sortedCards.forEach(card => {
             const matchesEngineer = selectedEngineer === '__all__' || (card.dataset.engineer || '').trim() === selectedEngineer;
             const matchesSalesperson = selectedSalesperson === '__all__' || (card.dataset.salesperson || '').trim() === selectedSalesperson;
-            const matches = matchesEngineer && matchesSalesperson;
-            card.classList.toggle('hiddenByFilter', !matches);
-            if (matches) visibleCount += 1;
+            const matchesFilters = matchesEngineer && matchesSalesperson;
+            const isVisibleMatch = updateProjectCardSearchState(card, searchQuery, matchesFilters);
+            card.classList.toggle('hiddenByFilter', !matchesFilters);
+            if (isVisibleMatch) visibleCount += 1;
           });
           if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
         }
@@ -1696,11 +2102,11 @@
         overlay.dataset.presentationReady = 'true';
 
         function move(direction) {
-          if (!presentationProjects.length) return;
+          const slideCount = presentationProjects.length + 1;
           presentationIndex = direction === 'prev'
-            ? (presentationIndex - 1 + presentationProjects.length) % presentationProjects.length
-            : (presentationIndex + 1) % presentationProjects.length;
-          animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], direction);
+            ? (presentationIndex - 1 + slideCount) % slideCount
+            : (presentationIndex + 1) % slideCount;
+          animateSwap('presentationCarouselCard', getCurrentPresentationSlide(), direction);
           updatePresentationCounter();
         }
 
@@ -1709,7 +2115,7 @@
           overlay.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
           presentationIndex = 0;
-          animateSwap('presentationCarouselCard', presentationProjects[presentationIndex], 'next');
+          animateSwap('presentationCarouselCard', getCurrentPresentationSlide(), 'next');
           updatePresentationCounter();
         }
 
@@ -1914,12 +2320,38 @@ function getPlainUpdateText(updateHtml) {
   return (template.content.textContent || "").replace(/\s+/g, " ").trim();
 }
 
+function normalizeTimestampText(value) {
+  return String(value || "")
+    .replace(/[\u00a0\u202f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseDashboardDate(value) {
+  if (!value) return null;
+  const normalized = normalizeTimestampText(value).replace(/\b([AP])\.M\.\b/gi, "$1M");
+  const date = new Date(normalized);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function extractUpdateTimestamp(updateText) {
-  const matches = String(updateText || "").match(/\b\d{1,2}\/\d{1,2}\/\d{4},\s+\d{1,2}:\d{2}\s+[AP]M\b/gi) || [];
+  const normalized = normalizeTimestampText(updateText);
+  const matches = normalized.match(/\b\d{1,2}\/\d{1,2}\/\d{4},?\s+\d{1,2}:\d{2}\s*[AP]\.?(?:M|\.M\.)\b/gi) || [];
   return matches
-    .map(timestamp => ({ timestamp, date: new Date(timestamp) }))
-    .filter(item => !Number.isNaN(item.date.getTime()))
+    .map(timestamp => {
+      const cleanTimestamp = normalizeTimestampText(timestamp).replace(/\b([AP])\.M\.\b/gi, "$1M");
+      return { timestamp: cleanTimestamp, date: parseDashboardDate(cleanTimestamp) };
+    })
+    .filter(item => item.date)
     .sort((a, b) => b.date.getTime() - a.date.getTime())[0]?.timestamp || "";
+}
+
+function getProjectLastActivityDate(project) {
+  const latest = getProjectLatestUpdateInfo(project);
+  if (latest.sortDate && !Number.isNaN(latest.sortDate.getTime())) return latest.sortDate;
+
+  const fallbackValue = project?.updated_at || project?.updatedAt || project?.last_updated || project?.modified_at || project?.created_at || project?.completed_date;
+  return parseDashboardDate(fallbackValue);
 }
 
 function getProjectLatestUpdateInfo(project) {
@@ -2248,6 +2680,26 @@ function exportActiveProjectsPdf() {
     th:nth-child(6), td:nth-child(6) { width: 10%; }
     th:nth-child(7), td:nth-child(7) { width: 38%; }
 
+    .reportNotes {
+      margin-top: 18px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .reportNotesTitle {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .reportNotesBox {
+      min-height: 2in;
+      border: 1.4px solid #111;
+      background: white;
+    }
+
     @media print {
       .noPrint {
         display: none;
@@ -2283,6 +2735,11 @@ function exportActiveProjectsPdf() {
       ${rows}
     </tbody>
   </table>
+
+  <section class="reportNotes">
+    <h2 class="reportNotesTitle">Notes</h2>
+    <div class="reportNotesBox"></div>
+  </section>
 
   <script>
     window.addEventListener("load", () => {
@@ -2386,6 +2843,7 @@ function getPlainTextFromHtml(html) {
 
           initProjectList();
           initCompletedProjectList();
+          initDashboardSearch();
           initPresentationMode();
           initExportActiveProjectsPdf();
           initManualEmailUpdates();
