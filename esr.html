@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script src="theme.js"></script>
     <title>ESR Generator</title>
     <style>
       :root {
@@ -469,15 +470,6 @@
   </div>
 </div>
         </div>
-        <script>
-          const THEME_STORAGE_KEY = "engineeringDashboard.theme";
-
-          const savedTheme =
-            localStorage.getItem(THEME_STORAGE_KEY) ||
-            (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-
-          document.documentElement.dataset.theme = savedTheme;
-          </script>
           <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
           <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
           <script src="esrGenerator.js"></script>

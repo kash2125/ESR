@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="theme.js"></script>
     <title>Add Project</title>
     <style>
       body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:linear-gradient(180deg,#f3f7ff 0%,#eef3fb 100%); color:#172033; }
@@ -129,6 +130,16 @@
         font-size: 13px;
         font-style: italic;
       }
+      :root[data-theme="dark"] body { background:linear-gradient(180deg,#0f172a 0%,#111827 100%); color:#e5e7eb; }
+      :root[data-theme="dark"] .card { background:#1f2937; border-color:rgba(255,255,255,.10); box-shadow:0 18px 50px rgba(0,0,0,.30); }
+      :root[data-theme="dark"] p, :root[data-theme="dark"] .toolLabel, :root[data-theme="dark"] .editorNote, :root[data-theme="dark"] .historyText, :root[data-theme="dark"] .historyEditLabel, :root[data-theme="dark"] .historyEditStamp { color:#aeb8ca; }
+      :root[data-theme="dark"] input, :root[data-theme="dark"] select, :root[data-theme="dark"] textarea, :root[data-theme="dark"] .richEditor, :root[data-theme="dark"] .toolButton { background:#111827; color:#e5e7eb; border-color:rgba(255,255,255,.16); }
+      :root[data-theme="dark"] .toolButtonHighlight { background:#66571b; color:#fff5bd; border-color:#9b8430; }
+      :root[data-theme="dark"] .actions a, :root[data-theme="dark"] .historyEditButton { background:#263a66; color:#dbe7ff; }
+      :root[data-theme="dark"] .historyBox { background:#111827; border-color:rgba(255,255,255,.16); }
+      :root[data-theme="dark"] .historyEntry { border-color:rgba(255,255,255,.12); }
+      :root[data-theme="dark"] .historyEditItem { background:#1f2937; border-color:rgba(255,255,255,.10); }
+      :root[data-theme="dark"] .historyDate, :root[data-theme="dark"] .historyLockedMeta, :root[data-theme="dark"] .historyEditable { color:#e5e7eb; }
       @media (max-width:680px) { .grid { grid-template-columns:1fr; } }
     </style>
   </head>

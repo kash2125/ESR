@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="theme.js"></script>
     <title>Add Project Sign In</title>
     <style>
       body {
@@ -64,6 +65,11 @@
         color: #9a4d00;
         border: 1px solid rgba(245,159,0,0.25);
       }
+      :root[data-theme="dark"] body { background:linear-gradient(180deg,#0f172a 0%,#111827 100%); color:#e5e7eb; }
+      :root[data-theme="dark"] .card { background:#1f2937; border-color:rgba(255,255,255,.10); box-shadow:0 18px 50px rgba(0,0,0,.30); }
+      :root[data-theme="dark"] p { color:#aeb8ca; }
+      :root[data-theme="dark"] input { background:#111827; color:#e5e7eb; border-color:rgba(255,255,255,.16); }
+      :root[data-theme="dark"] .back { background:#263a66; color:#dbe7ff; }
     </style>
   </head>
   <body>
