@@ -857,6 +857,80 @@
         padding: 28px;
         overflow: auto;
       }
+      .presentationOverlay:fullscreen {
+        padding: 0;
+        background: var(--card-bg);
+      }
+      .presentationOverlay:fullscreen .presentationShell {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        padding: clamp(24px, 2.5vw, 48px);
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .presentationOverlay:fullscreen .presentationTopBar {
+        margin-bottom: clamp(18px, 2vh, 30px);
+      }
+      .presentationOverlay:fullscreen .presentationTitleGroup h2 {
+        font-size: clamp(36px, 3vw, 54px);
+      }
+      .presentationOverlay:fullscreen .presentationHint,
+      .presentationOverlay:fullscreen .presentationCounter,
+      .presentationOverlay:fullscreen .presentationTopActions .iconBtn {
+        font-size: clamp(16px, 1.2vw, 21px);
+      }
+      .presentationOverlay:fullscreen .presentationContent {
+        grid-template-columns: clamp(92px, 7vw, 132px) minmax(0, 1fr) clamp(92px, 7vw, 132px);
+        gap: clamp(18px, 2vw, 34px);
+      }
+      .presentationOverlay:fullscreen .presentationArrow {
+        min-width: 0;
+        font-size: clamp(52px, 5vw, 82px);
+      }
+      .presentationOverlay:fullscreen .presentationViewport {
+        padding: clamp(32px, 3vw, 58px);
+      }
+      .presentationOverlay:fullscreen .presentationProjectName {
+        font-size: clamp(64px, 6vw, 110px);
+      }
+      .presentationOverlay:fullscreen .presentationProjectNumber,
+      .presentationOverlay:fullscreen .badge {
+        min-height: 42px;
+        padding-inline: 16px;
+        font-size: clamp(15px, 1.1vw, 20px);
+      }
+      .presentationOverlay:fullscreen .presentationProjectEngineer,
+      .presentationOverlay:fullscreen .presentationLastEdited,
+      .presentationOverlay:fullscreen .presentationDescription {
+        font-size: clamp(22px, 1.7vw, 31px);
+      }
+      .presentationOverlay:fullscreen .presentationTopMeta {
+        width: max-content;
+        max-width: none;
+        min-width: clamp(360px, 24vw, 520px);
+      }
+      .presentationOverlay:fullscreen .presentationProjectEngineer,
+      .presentationOverlay:fullscreen .presentationLastEdited {
+        white-space: nowrap;
+      }
+      .presentationOverlay:fullscreen .presentationMetaLabel,
+      .presentationOverlay:fullscreen .presentationMetricLabel,
+      .presentationOverlay:fullscreen .presentationBarLabel,
+      .presentationOverlay:fullscreen .presentationBarCount {
+        font-size: clamp(14px, 1vw, 18px);
+      }
+      .presentationOverlay:fullscreen .presentationMetaValue,
+      .presentationOverlay:fullscreen .presentationMetricDetail {
+        font-size: clamp(19px, 1.35vw, 25px);
+      }
+      .presentationOverlay:fullscreen .presentationSummaryTitle {
+        font-size: clamp(58px, 5.5vw, 100px);
+      }
+      .presentationOverlay:fullscreen .presentationMetricValue {
+        font-size: clamp(46px, 4vw, 74px);
+      }
       .presentationStage { will-change: transform, opacity; }
       .presentationProjectHeader {
         display: grid;
@@ -2131,6 +2205,12 @@
         if (nextBtn) nextBtn.addEventListener('click', () => move('next'));
 
         if (toggleFullscreenBtn) {
+          const syncFullscreenState = () => {
+            const isFullscreen = document.fullscreenElement === overlay;
+            toggleFullscreenBtn.textContent = isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen';
+            toggleFullscreenBtn.setAttribute('aria-pressed', String(isFullscreen));
+          };
+
           toggleFullscreenBtn.addEventListener('click', async () => {
             try {
               if (document.fullscreenElement) {
@@ -2140,6 +2220,8 @@
               }
             } catch (error) {}
           });
+          document.addEventListener('fullscreenchange', syncFullscreenState);
+          syncFullscreenState();
         }
 
         overlay.addEventListener('click', event => {
