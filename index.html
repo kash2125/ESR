@@ -2654,6 +2654,8 @@ function exportActiveProjectsPdf() {
   const visibleProjects = [...projectsData].sort((a, b) => {
     return Number(a.project_number || 0) - Number(b.project_number || 0);
   });
+  const exportRowsPerPage = Math.max(1, Math.ceil(visibleProjects.length / 2));
+  const exportRowHeight = Math.max(0.42, Math.min(0.85, 9.75 / exportRowsPerPage));
 
   const rows = visibleProjects.map(project => {
     const renderedUpdates = renderProjectUpdates(
@@ -2667,13 +2669,12 @@ function exportActiveProjectsPdf() {
     );
     return `
       <tr>
-        <td>${escapeHtml(project.project_number || "")}</td>
-        <td>${escapeHtml(project.project_name || "")}</td>
-        <td>${escapeHtml(displayProjectStatus(project.project_status))}</td>
-        <td>${escapeHtml(project.sales_person || "")}</td>
-        <td>${escapeHtml(project.start_date || "")}</td>
-        <td>${escapeHtml(project.engineer || "")}</td>
-        <td class="updateCell">${escapeHtml(latestUpdate || "No latest update yet.")}</td>
+        <td><div class="cellContent">${escapeHtml(project.project_number || "")}</div></td>
+        <td><div class="cellContent">${escapeHtml(project.project_name || "")}</div></td>
+        <td><div class="cellContent">${escapeHtml(project.sales_person || "")}</div></td>
+        <td><div class="cellContent">${escapeHtml(project.engineer || "")}</div></td>
+        <td class="updateCell"><div class="cellContent">${escapeHtml(latestUpdate || "No latest update yet.")}</div></td>
+        <td class="notesCell"></td>
       </tr>
     `;
   }).join("");
@@ -2694,6 +2695,10 @@ function exportActiveProjectsPdf() {
   <style>
     * {
       box-sizing: border-box;
+    }
+
+    :root {
+      --project-row-height: ${exportRowHeight.toFixed(3)}in;
     }
 
     @page {
@@ -2717,7 +2722,7 @@ function exportActiveProjectsPdf() {
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
-      font-size: 9.5px;
+      font-size: 14px;
     }
 
     thead {
@@ -2745,39 +2750,33 @@ function exportActiveProjectsPdf() {
       overflow-wrap: anywhere;
     }
 
-    .updateCell {
-      text-align: left;
-      font-size: 9px;
-      line-height: 1.35;
-    }
-
-    th:nth-child(1), td:nth-child(1) { width: 6%; }
-    th:nth-child(2), td:nth-child(2) { width: 18%; }
-    th:nth-child(3), td:nth-child(3) { width: 9%; }
-    th:nth-child(4), td:nth-child(4) { width: 10%; }
-    th:nth-child(5), td:nth-child(5) { width: 9%; }
-    th:nth-child(6), td:nth-child(6) { width: 10%; }
-    th:nth-child(7), td:nth-child(7) { width: 38%; }
-
-    .reportNotes {
-      margin-top: 18px;
+    tbody tr {
+      height: var(--project-row-height);
       break-inside: avoid;
       page-break-inside: avoid;
     }
 
-    .reportNotesTitle {
-      margin: 0 0 8px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+    .cellContent {
+      max-height: calc(var(--project-row-height) - 12px);
+      overflow: hidden;
     }
 
-    .reportNotesBox {
-      min-height: 2in;
-      border: 1.4px solid #111;
-      background: white;
+    .updateCell {
+      text-align: left;
+      font-size: 14px;
+      line-height: 1.35;
     }
+
+    .notesCell {
+      height: var(--project-row-height);
+    }
+
+    th:nth-child(1), td:nth-child(1) { width: 7%; }
+    th:nth-child(2), td:nth-child(2) { width: 18%; }
+    th:nth-child(3), td:nth-child(3) { width: 11%; }
+    th:nth-child(4), td:nth-child(4) { width: 11%; }
+    th:nth-child(5), td:nth-child(5) { width: 29%; }
+    th:nth-child(6), td:nth-child(6) { width: 24%; }
 
     @media print {
       .noPrint {
@@ -2803,22 +2802,16 @@ function exportActiveProjectsPdf() {
       <tr>
         <th>Job #</th>
         <th>Job Name</th>
-        <th>Status</th>
         <th>Sales Person</th>
-        <th>Start<br>Date</th>
         <th>Engineer</th>
         <th>Latest Update</th>
+        <th>Notes</th>
       </tr>
     </thead>
     <tbody>
       ${rows}
     </tbody>
   </table>
-
-  <section class="reportNotes">
-    <h2 class="reportNotesTitle">Notes</h2>
-    <div class="reportNotesBox"></div>
-  </section>
 
   <script>
     window.addEventListener("load", () => {
