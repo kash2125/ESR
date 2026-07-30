@@ -2654,7 +2654,7 @@ function exportActiveProjectsPdf() {
   const visibleProjects = [...projectsData].sort((a, b) => {
     return Number(a.project_number || 0) - Number(b.project_number || 0);
   });
-  const exportRowsPerPage = Math.max(1, Math.ceil(visibleProjects.length / 2));
+  const exportRowsPerPage = Math.max(1, visibleProjects.length);
   const exportRowHeight = Math.max(0.42, Math.min(0.85, 9.75 / exportRowsPerPage));
 
   const rows = visibleProjects.map(project => {
@@ -2757,8 +2757,7 @@ function exportActiveProjectsPdf() {
     }
 
     .cellContent {
-      max-height: calc(var(--project-row-height) - 12px);
-      overflow: hidden;
+      overflow: visible;
     }
 
     .updateCell {
